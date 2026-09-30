@@ -169,3 +169,36 @@ export function suggestPlaceByTime(
   const { countryCode, regionId, cityId, placeId } = best;
   return { countryCode, regionId, cityId, placeId };
 }
+
+export interface PhotoCluster {
+  /** Id estable de la celda: "<fila>:<columna>". */
+  id: string;
+  /** Centro medio de las fotos de la celda. */
+  center: LatLng;
+  count: number;
+}
+
+/**
+ * Agrupa puntos en celdas cuadradas de `cellDegrees` grados para pintarlos en el mapa (M3.3).
+ * O(n). Se calcula en el dispositivo: los puntos nunca salen del móvil.
+ */
+export function clusterPhotos(points: readonly LatLng[], cellDegrees: number): PhotoCluster[] {
+  const cells = new Map<string, { lat: number; lng: number; count: number }>();
+  for (const point of points) {
+    if (!isValidCoordinate(point)) continue;
+    const id = `${Math.floor(point.lat / cellDegrees)}:${Math.floor(point.lng / cellDegrees)}`;
+    const cell = cells.get(id);
+    if (cell) {
+      cell.lat += point.lat;
+      cell.lng += point.lng;
+      cell.count += 1;
+    } else {
+      cells.set(id, { lat: point.lat, lng: point.lng, count: 1 });
+    }
+  }
+  return [...cells].map(([id, cell]) => ({
+    id,
+    center: { lat: cell.lat / cell.count, lng: cell.lng / cell.count },
+    count: cell.count,
+  }));
+}

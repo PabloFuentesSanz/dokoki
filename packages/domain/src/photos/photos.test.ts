@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   assignPhotosToBatch,
+  clusterPhotos,
   suggestPlaceByTime,
   type PhotoMeta,
   type PlaceAssignment,
@@ -150,5 +151,38 @@ describe('suggestPlaceByTime (desempate)', () => {
     const later: PlaceAssignment = { photoId: 'n1', takenAt: T0 + 2 * DAY, ...NARA, source: 'gps' };
     const earlier: PlaceAssignment = { photoId: 'k1', takenAt: T0, ...KIOTO, source: 'gps' };
     expect(suggestPlaceByTime(T0 + DAY, [later, earlier], { windowMs: DAY })).toEqual(KIOTO);
+  });
+});
+
+describe('clusterPhotos', () => {
+  it('agrupa por celda con el centro medio y el número de fotos', () => {
+    const clusters = clusterPhotos(
+      [
+        { lat: 35.011, lng: 135.768 },
+        { lat: 35.013, lng: 135.77 },
+        { lat: 34.685, lng: 135.805 },
+      ],
+      0.1,
+    );
+    expect(clusters).toHaveLength(2);
+    const kyoto = clusters.find((c) => c.count === 2);
+    expect(kyoto?.center.lat).toBeCloseTo(35.012, 5);
+    expect(kyoto?.center.lng).toBeCloseTo(135.769, 5);
+    expect(clusters.find((c) => c.count === 1)?.center).toEqual({ lat: 34.685, lng: 135.805 });
+  });
+
+  it('usa ids estables por celda y descarta coordenadas no válidas', () => {
+    const clusters = clusterPhotos(
+      [
+        { lat: 0, lng: 0 },
+        { lat: 40.42, lng: -3.7 },
+      ],
+      0.5,
+    );
+    expect(clusters).toEqual([{ id: '80:-8', center: { lat: 40.42, lng: -3.7 }, count: 1 }]);
+  });
+
+  it('sin fotos no hay grupos', () => {
+    expect(clusterPhotos([], 0.1)).toEqual([]);
   });
 });
