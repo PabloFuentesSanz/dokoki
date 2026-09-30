@@ -1,0 +1,47 @@
+{
+  "name": "@atlas/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Atlas \u2014 Cuaderno de explorador: tokens y componentes React Native (iOS, Android y web).",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens": "./src/tokens/index.ts",
+    "./tokens.json": "./src/tokens/tokens.json"
+  },
+  "scripts": {
+    "tokens": "node scripts/generate-tokens.ts",
+    "lint": "eslint src scripts .storybook",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "storybook": "storybook dev -p 6006",
+    "build": "storybook build"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-svg": "*"
+  },
+  "devDependencies": {
+    "@expo-google-fonts/caveat": "^0.4.2",
+    "@expo-google-fonts/courier-prime": "^0.4.1",
+    "@expo-google-fonts/libre-caslon-text": "^0.4.0",
+    "@storybook/react-native-web-vite": "^10.6.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.19.0",
+    "@types/react": "~19.2.0",
+    "jsdom": "^30.1.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "~0.21.0",
+    "storybook": "^10.6.1",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.3"
+  }
+}
