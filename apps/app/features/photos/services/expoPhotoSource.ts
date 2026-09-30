@@ -1,12 +1,20 @@
 import {
   Asset,
   AssetField,
+  getPermissionsAsync,
   MediaType,
   presentPermissionsPicker,
   Query,
   requestPermissionsAsync,
 } from 'expo-media-library';
 import type { PhotoSource } from './scanLibrary';
+
+/** ¿Ya hay permiso? Sirve para la lectura incremental al abrir, sin mostrar ningún diálogo. */
+export async function hasPhotoAccess(): Promise<PhotoAccess | null> {
+  const response = await getPermissionsAsync(false, ['photo']);
+  if (!response.granted) return null;
+  return response.accessPrivileges === 'limited' ? 'limited' : 'all';
+}
 
 export type PhotoAccess = 'all' | 'limited' | 'denied';
 
@@ -24,9 +32,10 @@ export async function pickMorePhotos(): Promise<void> {
 
 /** Fuente real: expo-media-library (API nueva de SDK 57). */
 export const expoPhotoSource: PhotoSource = {
-  async listPage(offset, limit) {
-    const page = await new Query()
-      .eq(AssetField.MEDIA_TYPE, MediaType.IMAGE)
+  async listPage(offset, limit, since) {
+    let query = new Query().eq(AssetField.MEDIA_TYPE, MediaType.IMAGE);
+    if (since !== undefined) query = query.gt(AssetField.CREATION_TIME, since);
+    const page = await query
       .orderBy({ key: AssetField.CREATION_TIME, ascending: false })
       .offset(offset)
       .limit(limit)

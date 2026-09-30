@@ -8,8 +8,12 @@
 import type { LatLng } from '@atlas/domain';
 
 export interface PhotoSource {
-  /** Una página de fotos, de la más reciente a la más antigua. */
-  listPage(offset: number, limit: number): Promise<{ id: string; creationTime: number | null }[]>;
+  /** Una página de fotos, de la más reciente a la más antigua; con `since`, solo las posteriores. */
+  listPage(
+    offset: number,
+    limit: number,
+    since?: number,
+  ): Promise<{ id: string; creationTime: number | null }[]>;
   getLocation(id: string): Promise<{ latitude: number; longitude: number } | null>;
 }
 
@@ -32,6 +36,8 @@ export interface ScanProgress {
 export type ScanResult = Omit<ScanProgress, 'located'> & {
   located: LocatedPhoto[];
   cancelled: boolean;
+  /** Fecha de la foto más reciente leída (con o sin GPS), para la próxima lectura incremental. */
+  newestTakenAt: number | null;
 };
 
 export interface ScanOptions {
@@ -40,6 +46,8 @@ export interface ScanOptions {
   concurrency?: number;
   onProgress?: (progress: ScanProgress, page: LocatedPhoto[]) => void;
   signal?: AbortSignal;
+  /** Solo fotos creadas después de este instante (epoch ms). */
+  since?: number;
 }
 
 async function mapLimit<T, R>(
@@ -65,12 +73,13 @@ export async function scanLibrary(
   source: PhotoSource,
   options: ScanOptions = {},
 ): Promise<ScanResult> {
-  const { pageSize = 500, concurrency = 16, onProgress, signal } = options;
+  const { pageSize = 500, concurrency = 16, onProgress, signal, since } = options;
   const started = Date.now();
   const located: LocatedPhoto[] = [];
   let scanned = 0;
   let listMs = 0;
   let locationMs = 0;
+  let newestTakenAt: number | null = null;
   const progress = (): ScanProgress => ({
     scanned,
     located: located.length,
@@ -80,10 +89,10 @@ export async function scanLibrary(
   });
 
   for (;;) {
-    if (signal?.aborted) return { ...progress(), located, cancelled: true };
+    if (signal?.aborted) return { ...progress(), located, cancelled: true, newestTakenAt };
 
     const listStart = Date.now();
-    const page = await source.listPage(scanned, pageSize);
+    const page = await source.listPage(scanned, pageSize, since);
     listMs += Date.now() - listStart;
     if (page.length === 0) break;
 
@@ -95,6 +104,12 @@ export async function scanLibrary(
 
     const pageLocated: LocatedPhoto[] = [];
     page.forEach((photo, i) => {
+      if (
+        photo.creationTime !== null &&
+        (newestTakenAt === null || photo.creationTime > newestTakenAt)
+      ) {
+        newestTakenAt = photo.creationTime;
+      }
       const loc = locations[i];
       if (loc) {
         pageLocated.push({
@@ -111,5 +126,5 @@ export async function scanLibrary(
     if (page.length < pageSize) break;
   }
 
-  return { ...progress(), located, cancelled: false };
+  return { ...progress(), located, cancelled: false, newestTakenAt };
 }

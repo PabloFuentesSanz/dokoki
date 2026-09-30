@@ -17,7 +17,18 @@ const count = (n: number): string => n.toLocaleString('es-ES');
 
 /** M3.8 · Estado de importación, versión de prueba técnica: lee el carrete y mide cuánto tarda. */
 export function PhotoLibraryPanel() {
-  const { status, access, photos, progress, error, scan, cancel, pickMore } = usePhotoLibrary();
+  const {
+    status,
+    access,
+    photos,
+    progress,
+    scannedTotal,
+    incremental,
+    error,
+    scan,
+    cancel,
+    pickMore,
+  } = usePhotoLibrary();
 
   if (status === 'unsupported') {
     return (
@@ -41,7 +52,11 @@ export function PhotoLibraryPanel() {
     );
   }
 
-  if (status === 'idle' || status === 'requesting') {
+  if (status === 'loading') {
+    return <SyncIndicator state="pending" label="Cargando tus fotos guardadas" />;
+  }
+
+  if ((status === 'idle' || status === 'requesting') && scannedTotal === 0) {
     return (
       <EmptyState
         icon="photos"
@@ -53,25 +68,25 @@ export function PhotoLibraryPanel() {
     );
   }
 
-  const scanned = progress?.scanned ?? 0;
-  const withGps = progress?.located ?? 0;
-  const pct = scanned === 0 ? 0 : Math.round((withGps / scanned) * 100);
+  const withGps = photos.length;
+  const pct = scannedTotal === 0 ? 0 : Math.round((withGps / scannedTotal) * 100);
+  const syncLabel =
+    status === 'scanning'
+      ? incremental
+        ? 'Buscando fotos nuevas'
+        : 'Leyendo tu carrete'
+      : progress && incremental
+        ? `${count(progress.scanned)} fotos nuevas`
+        : 'Todo guardado en tu móvil';
 
   return (
     <View style={styles.panel}>
-      <SyncIndicator
-        state={status === 'scanning' ? 'pending' : 'synced'}
-        label={
-          status === 'scanning'
-            ? 'Leyendo tu carrete'
-            : `Lectura completa en ${seconds(progress?.elapsedMs ?? 0)}`
-        }
-      />
+      <SyncIndicator state={status === 'scanning' ? 'pending' : 'synced'} label={syncLabel} />
       <StatStrip
         stats={[
-          { value: count(scanned), label: 'fotos leídas' },
+          { value: count(scannedTotal), label: 'fotos leídas' },
           { value: count(withGps), label: 'con ubicación' },
-          { value: seconds(progress?.elapsedMs ?? 0), label: 'tiempo' },
+          { value: seconds(progress?.elapsedMs ?? 0), label: 'última lectura' },
         ]}
       />
       <ProgressBar
@@ -83,7 +98,9 @@ export function PhotoLibraryPanel() {
       {progress ? (
         <Text style={styles.data}>
           {`Prueba técnica: listar ${seconds(progress.listMs)}, ubicaciones ${seconds(progress.locationMs)}, ${
-            progress.elapsedMs > 0 ? count(Math.round((scanned / progress.elapsedMs) * 1000)) : '0'
+            progress.elapsedMs > 0
+              ? count(Math.round((progress.scanned / progress.elapsedMs) * 1000))
+              : '0'
           } fotos/s`}
         </Text>
       ) : null}
@@ -102,7 +119,10 @@ export function PhotoLibraryPanel() {
               Ver en el mapa
             </Button>
             <Button variant="secondary" onPress={() => void scan()}>
-              Volver a leer
+              Buscar fotos nuevas
+            </Button>
+            <Button variant="ghost" onPress={() => void scan({ full: true })}>
+              Volver a leer todo
             </Button>
           </>
         )}

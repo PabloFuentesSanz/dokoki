@@ -7,6 +7,10 @@ export async function requestPhotoAccess(): Promise<PhotoAccess> {
   return 'denied';
 }
 
+export async function hasPhotoAccess(): Promise<PhotoAccess | null> {
+  return null;
+}
+
 export async function pickMorePhotos(): Promise<void> {}
 
 export const expoPhotoSource: PhotoSource = {

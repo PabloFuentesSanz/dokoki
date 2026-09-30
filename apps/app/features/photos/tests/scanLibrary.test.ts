@@ -3,11 +3,13 @@ import { scanLibrary, type PhotoSource, type ScanProgress } from '../services/sc
 
 /** Carrete falso: `total` fotos; las pares tienen GPS. */
 function fakeSource(total: number): PhotoSource & { listPage: ReturnType<typeof vi.fn> } {
-  const listPage = vi.fn(async (offset: number, limit: number) =>
-    Array.from({ length: Math.max(0, Math.min(limit, total - offset)) }, (_, i) => ({
-      id: `p${offset + i}`,
-      creationTime: 1_700_000_000_000 + offset + i,
-    })),
+  // Orden de más reciente a más antigua, como el carrete: p0 es la más nueva.
+  const all = Array.from({ length: total }, (_, i) => ({
+    id: `p${i}`,
+    creationTime: 1_700_000_000_000 - i,
+  }));
+  const listPage = vi.fn(async (offset: number, limit: number, since?: number) =>
+    all.filter((p) => since === undefined || p.creationTime > since).slice(offset, offset + limit),
   );
   return {
     listPage,
@@ -64,8 +66,20 @@ describe('scanLibrary', () => {
     expect(result.cancelled).toBe(true);
   });
 
+  it('con `since` solo lee las fotos posteriores (lectura incremental)', async () => {
+    const source = fakeSource(1000);
+    const result = await scanLibrary(source, { since: 1_700_000_000_000 - 10, pageSize: 500 });
+    expect(result.scanned).toBe(10);
+    expect(source.listPage).toHaveBeenCalledWith(0, 500, 1_700_000_000_000 - 10);
+  });
+
   it('un carrete vacío termina sin fotos', async () => {
     const result = await scanLibrary(fakeSource(0));
-    expect(result).toMatchObject({ scanned: 0, located: [], cancelled: false });
+    expect(result).toMatchObject({
+      scanned: 0,
+      located: [],
+      cancelled: false,
+      newestTakenAt: null,
+    });
   });
 });
