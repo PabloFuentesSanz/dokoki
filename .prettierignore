@@ -1,0 +1,9 @@
+node_modules
+.turbo
+.expo
+dist
+coverage
+storybook-static
+package-lock.json
+# generado por `npm run tokens` con su propio formato (un test compara byte a byte)
+packages/design-system/src/tokens/index.ts

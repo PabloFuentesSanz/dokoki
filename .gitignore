@@ -1,0 +1,39 @@
+# dependencias
+node_modules/
+
+# builds
+dist/
+build/
+coverage/
+storybook-static/
+*.tsbuildinfo
+
+# turbo
+.turbo/
+
+# expo
+.expo/
+.expo-shared/
+web-build/
+expo-env.d.ts
+apps/app/ios/
+apps/app/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# entorno y secretos
+.env
+.env.*
+!.env.example
+
+# sistema y editores
+.DS_Store
+*.log
+npm-debug.log*
+.idea/
+.vscode/*
+!.vscode/extensions.json
