@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { PhotoLibraryProvider } from '../features/photos/store/PhotoLibraryProvider';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -34,9 +35,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       {/* Solo modo claro: barra de estado oscura sobre papel. */}
       <StatusBar style="dark" />
-      <Stack
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}
-      />
+      <PhotoLibraryProvider>
+        <Stack
+          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}
+        />
+      </PhotoLibraryProvider>
     </SafeAreaProvider>
   );
 }
