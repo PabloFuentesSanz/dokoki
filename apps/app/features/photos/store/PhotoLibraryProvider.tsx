@@ -7,7 +7,9 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { assignPhotosToBatch, type PlaceAssignment, type ResolvedPlace } from '@atlas/domain';
 import { Platform } from 'react-native';
+import { countryResolver } from '../../map/services/countries';
 import {
   expoPhotoSource,
   pickMorePhotos,
@@ -24,6 +26,8 @@ export interface PhotoLibraryState {
   access: PhotoAccess | null;
   /** Solo las fotos con GPS. Viven en memoria, en el dispositivo. */
   photos: readonly LocatedPhoto[];
+  /** País de cada foto con GPS, calculado en el móvil (HU-06). */
+  assignments: readonly PlaceAssignment[];
   progress: ScanProgress | null;
   error: string | null;
 }
@@ -39,6 +43,7 @@ const INITIAL: PhotoLibraryState = {
   status: Platform.OS === 'web' ? 'unsupported' : 'idle',
   access: null,
   photos: [],
+  assignments: [],
   progress: null,
   error: null,
 };
@@ -66,12 +71,28 @@ export function PhotoLibraryProvider({ children }: { children: ReactNode }) {
       controller.current?.abort();
       const abort = new AbortController();
       controller.current = abort;
-      setState((s) => ({ ...s, status: 'scanning', access, photos: [], progress: null }));
+      setState((s) => ({
+        ...s,
+        status: 'scanning',
+        access,
+        photos: [],
+        assignments: [],
+        progress: null,
+      }));
 
+      // Caché por celda compartida entre páginas: las ráfagas no repiten la búsqueda.
+      const cache = new Map<string, ResolvedPlace | null>();
       const result = await scanLibrary(expoPhotoSource, {
         signal: abort.signal,
-        onProgress: (progress, page) =>
-          setState((s) => ({ ...s, progress, photos: [...s.photos, ...page] })),
+        onProgress: (progress, page) => {
+          const { assignments } = assignPhotosToBatch(page, countryResolver, { cache });
+          setState((s) => ({
+            ...s,
+            progress,
+            photos: [...s.photos, ...page],
+            assignments: [...s.assignments, ...assignments],
+          }));
+        },
       });
       setState((s) => ({ ...s, status: result.cancelled ? 'idle' : 'done' }));
     } catch (error: unknown) {
