@@ -1,0 +1,49 @@
+{
+  "name": "@atlas/app",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start --dev-client",
+    "start": "expo start",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "web": "expo start --web",
+    "build": "expo export --platform web",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@atlas/design-system": "*",
+    "@atlas/domain": "*",
+    "@atlas/map": "*",
+    "@expo-google-fonts/caveat": "^0.4.2",
+    "@expo-google-fonts/courier-prime": "^0.4.1",
+    "@expo-google-fonts/libre-caslon-text": "^0.4.0",
+    "@maplibre/maplibre-react-native": "^11.4.0",
+    "expo": "~57.0.26",
+    "expo-constants": "~57.0.20",
+    "expo-dev-client": "~57.0.19",
+    "expo-font": "~57.0.4",
+    "expo-linking": "~57.0.11",
+    "expo-media-library": "~57.0.5",
+    "expo-router": "~57.0.24",
+    "expo-splash-screen": "~57.0.9",
+    "expo-sqlite": "~57.0.3",
+    "expo-status-bar": "~57.0.1",
+    "maplibre-gl": "^5.24.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "~0.21.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.3"
+  }
+}

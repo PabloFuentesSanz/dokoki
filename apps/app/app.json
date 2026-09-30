@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Atlas",
+    "slug": "atlas",
+    "scheme": "atlas",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#E7DCC5",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.atlas.travel",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "app.atlas.travel",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Atlas",
+      "shortName": "Atlas",
+      "backgroundColor": "#E7DCC5",
+      "themeColor": "#E7DCC5"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-sqlite",
+      "expo-dev-client",
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#E7DCC5"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Atlas lee la fecha y el lugar de tus fotos para desbloquear tu mapa. Todo se procesa en tu móvil: tus fotos y sus ubicaciones no salen de él.",
+          "savePhotosPermission": "Atlas guarda en tu carrete las tarjetas que creas para compartir.",
+          "isAccessMediaLocationEnabled": true,
+          "granularPermissions": ["photo"]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
