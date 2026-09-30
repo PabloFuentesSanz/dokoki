@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, tipos y tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Formato (Prettier)
+        run: npm run format:check
+
+      - name: Lint + type-check + Vitest
+        run: npx turbo run lint typecheck test
+
+  eas-preview:
+    name: EAS preview build
+    needs: checks
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Comprobar configuración de EAS
+        id: eas
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::warning::Falta el secreto EXPO_TOKEN: se salta el build de preview."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          elif ! node -e "process.exit(require('./apps/app/app.json').expo.extra?.eas?.projectId ? 0 : 1)"; then
+            echo "::warning::Falta expo.extra.eas.projectId en apps/app/app.json (ejecuta 'eas init'): se salta el build de preview."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v5
+        if: steps.eas.outputs.ready == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        if: steps.eas.outputs.ready == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+        if: steps.eas.outputs.ready == 'true'
+
+      - name: Build de preview (iOS + Android)
+        if: steps.eas.outputs.ready == 'true'
+        working-directory: apps/app
+        run: eas build --profile preview --platform all --non-interactive --no-wait
