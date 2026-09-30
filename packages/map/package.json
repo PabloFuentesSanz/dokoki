@@ -1,0 +1,35 @@
+{
+  "name": "@atlas/map",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Mapa de Atlas: una interfaz, dos motores (maplibre-react-native en iOS/Android, maplibre-gl en web).",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@atlas/design-system": "*",
+    "@types/geojson": "^7946.0.16"
+  },
+  "peerDependencies": {
+    "@maplibre/maplibre-react-native": "*",
+    "maplibre-gl": "*",
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@maplibre/maplibre-react-native": "^11.4.0",
+    "@types/react": "~19.2.0",
+    "maplibre-gl": "^5.24.0",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "vitest": "^5.0.3"
+  }
+}
