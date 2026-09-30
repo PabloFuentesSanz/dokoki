@@ -24,3 +24,4 @@ export function haversineKm(a: LatLng, b: LatLng): number {
     Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
 }
+export * from './areas';

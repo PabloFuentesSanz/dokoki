@@ -11,8 +11,9 @@ export type UnlockLevel = 'country' | 'region' | 'city';
 /** Lo mínimo de una foto asignada para desbloquear (compatible con PlaceAssignment). */
 export interface VisitedPhoto {
   countryCode: string;
-  regionId: string;
-  cityId: string;
+  /** null si la foto solo está resuelta a nivel de país. */
+  regionId: string | null;
+  cityId: string | null;
   takenAt: number;
 }
 
@@ -106,9 +107,11 @@ export function computeUnlockState(
   for (const photo of photos) {
     if (until !== undefined && photo.takenAt > until) continue;
     addPhoto(countries, photo.countryCode, photo.takenAt);
-    addPhoto(regions, photo.regionId, photo.takenAt);
-    addPhoto(cities, photo.cityId, photo.takenAt);
-    regionCountry.set(photo.regionId, photo.countryCode);
+    if (photo.regionId !== null) {
+      addPhoto(regions, photo.regionId, photo.takenAt);
+      regionCountry.set(photo.regionId, photo.countryCode);
+    }
+    if (photo.cityId !== null) addPhoto(cities, photo.cityId, photo.takenAt);
   }
 
   for (const mark of options.manual ?? []) {

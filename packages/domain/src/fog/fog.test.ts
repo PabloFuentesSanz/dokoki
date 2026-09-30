@@ -139,6 +139,15 @@ describe('computeUnlockState', () => {
     expect(state.countries.PE).toMatchObject({ firstVisitedAt: T2022, source: 'manual' });
   });
 
+  it('una foto resuelta solo a nivel de país desbloquea solo el país', () => {
+    const state = computeUnlockState(
+      [{ countryCode: 'PE', regionId: null, cityId: null, takenAt: T2022 }],
+      { catalog },
+    );
+    expect(state.totals).toEqual({ countries: 1, regions: 0, cities: 0 });
+    expect(state.countries.PE?.photoCount).toBe(1);
+  });
+
   it('sin nada visitado todo está a cero', () => {
     const state = computeUnlockState([], { catalog });
     expect(state.totals).toEqual({ countries: 0, regions: 0, cities: 0 });

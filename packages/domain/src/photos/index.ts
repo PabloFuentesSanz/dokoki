@@ -23,9 +23,10 @@ export interface PhotoMeta {
 export interface ResolvedPlace {
   /** ISO 3166-1 alfa-2. */
   countryCode: string;
-  /** ISO 3166-2 cuando existe (JP-26), o id propio del dataset de límites. */
-  regionId: string;
-  cityId: string;
+  /** ISO 3166-2 cuando existe (JP-26), o id propio del dataset. null si aún no se conoce. */
+  regionId: string | null;
+  /** null si aún no se conoce (p. ej. solo hay límites de países). */
+  cityId: string | null;
   /** Lugar concreto (mirador, templo…) si el punto cae en uno conocido. */
   placeId: string | null;
 }
