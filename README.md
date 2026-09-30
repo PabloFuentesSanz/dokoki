@@ -35,4 +35,4 @@ npm run ios          # o: npm run android · npm run web
 ```
 
 Para los builds de EAS: `npx eas-cli init` en `apps/app` (añade el `projectId` a `app.json`) y crea el
-secreto `EXPO_TOKEN` en GitHub. Cambia `app.atlas.travel` en `app.json` por tu identificador de app.
+secreto `EXPO_TOKEN` en GitHub. El identificador de la app es `com.pablofuentes.dokoki` (iOS y Android).

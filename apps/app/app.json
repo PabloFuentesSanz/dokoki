@@ -9,11 +9,11 @@
     "backgroundColor": "#E7DCC5",
     "newArchEnabled": true,
     "ios": {
-      "bundleIdentifier": "app.atlas.travel",
+      "bundleIdentifier": "com.pablofuentes.dokoki",
       "supportsTablet": true
     },
     "android": {
-      "package": "app.atlas.travel",
+      "package": "com.pablofuentes.dokoki",
       "edgeToEdgeEnabled": true
     },
     "web": {
