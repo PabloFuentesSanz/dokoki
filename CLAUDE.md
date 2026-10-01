@@ -117,15 +117,21 @@ cd apps/app && npm run web  # la app en el navegador
 ## Orden de implementación del MVP
 
 1. **design-system**: tokens y 31 componentes con tests y stories (hecho).
-2. **onboarding** (M0): portada, onboarding, registro, permisos, base, importación, primera revelación.
-3. **domain/photos**: `PlaceResolver` real con límites administrativos en el dispositivo (HU-06).
-4. **domain/trips**: detección, fusión y división de viajes (HU-21, HU-22). Base hecha y probada.
-5. **map** (M1): mapa mundi con niebla, capas, fichas de país, región y ciudad, búsqueda.
-6. **photos** (M3): galería por lugar y tiempo, detalle, corrección, sin ubicación, importación.
-7. **trips** (M4): lista, detalle con ruta y notas, editor.
-8. **exploration** (M2, dentro de `features/map`): progreso y pasaporte de sellos.
-9. **sharing** (M8): crear tarjeta y compartir fuera.
-10. **settings** (M10): ajustes, privacidad, almacenamiento, datos.
+2. **Lectura del carrete** (HU-05, HU-07): por páginas, con GPS en el móvil, guardada en
+   expo-sqlite y solo fotos nuevas al abrir (hecho, `features/photos`).
+3. **domain/photos + datos geográficos** (HU-06): país (Natural Earth), región (admin-1) y ciudad
+   más cercana (GeoNames ≥ 15.000 hab.), todo en el dispositivo (hecho, `features/map/services`).
+4. **domain/trips** (HU-21): detección automática con base = ciudad con más fotos (hecho, lista y
+   detalle básicos). Falta corregir: confirmar, fusionar, dividir, renombrar (HU-22).
+5. **map** (M1): niebla por país y por región al acercarse, fichas de país (hecho, versión inicial).
+   Falta: capas (M1.2), viaje en el tiempo (M1.3), fichas de región y ciudad, búsqueda.
+6. **onboarding** (M0): portada, onboarding, registro, permisos, confirmar la base.
+7. **photos** (M3): galería por lugar y tiempo, detalle, corrección, sin ubicación.
+8. **trips** (M4): detalle completo con días y notas, editor.
+9. **exploration** (M2, dentro de `features/map`): progreso y pasaporte de sellos.
+10. **sharing** (M8): crear tarjeta y compartir fuera.
+11. **settings** (M10): ajustes, privacidad, almacenamiento, datos y **Créditos** (obligatorio
+    citar GeoNames, CC BY 4.0; ver `apps/app/features/map/data/README.md`).
 
 Lo que ya existe en `packages/domain` (fotos, viajes, niebla, gastos) son interfaces y algoritmos
 puros con sus tests; falta conectarlos a datos reales. `expenses` es de V2 y no entra en el MVP.
