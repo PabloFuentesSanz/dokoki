@@ -6,7 +6,7 @@ export interface TimeSliderProps {
   /** 2018 por defecto. */
   min?: number;
   max: number;
-  /** Año inicial; `max` si no se indica. */
+  /** Año mostrado; `max` si no se indica. Si cambia desde fuera, el deslizador lo sigue. */
   value?: number;
   onChange?: (year: number) => void;
 }
@@ -18,6 +18,12 @@ export interface TimeSliderProps {
  */
 export function TimeSlider({ min = 2018, max, value, onChange }: TimeSliderProps) {
   const [year, setYear] = useState(value ?? max);
+  // Si el valor cambia desde fuera (p. ej. el botón de reproducir), el deslizador lo sigue.
+  const [lastValue, setLastValue] = useState(value);
+  if (value !== lastValue) {
+    setLastValue(value);
+    if (value !== undefined) setYear(value);
+  }
   const years = Array.from({ length: max - min + 1 }, (_, i) => min + i);
   const select = (next: number) => {
     const clamped = Math.max(min, Math.min(max, next));
