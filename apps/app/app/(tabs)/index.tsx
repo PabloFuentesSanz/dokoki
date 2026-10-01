@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
-import { countryCatalog } from '../../features/map/services/countries';
+import { countryCount } from '../../features/map/services/countries';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
 
 /** Celdas de ~5 km: suficiente para ver ciudades y barrios sin miles de puntos. */
@@ -41,7 +41,7 @@ export default function MapScreen() {
           <ProgressBar
             label="Tu mundo"
             value={state.worldPercent}
-            detail={`${state.totals.countries} de ${countryCatalog.countryCount} países`}
+            detail={`${state.totals.countries} de ${countryCount} países`}
           />
         </View>
         <MapLegend />

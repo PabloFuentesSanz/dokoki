@@ -1,10 +1,8 @@
-/**
- * Países en el dispositivo (HU-06): límites de Natural Earth empaquetados en la app, sin red.
- * TODO(HU-06): regiones y ciudades (admin-1/admin-2) con un índice en expo-sqlite.
- */
-import { createAreaIndex, type PlaceResolver, type UnlockCatalog } from '@atlas/domain';
-import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
+/** Países en el dispositivo (HU-06): límites de Natural Earth empaquetados en la app, sin red. */
+import { createAreaIndex, type PlaceResolver } from '@atlas/domain';
+import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import rawCountries from '../data/countries.json';
+import { readString, toAreaCollection } from './geodata';
 
 export interface CountryProperties {
   id: string;
@@ -13,55 +11,31 @@ export interface CountryProperties {
   continent: string;
 }
 
-type CountryFeature = Feature<Polygon | MultiPolygon, CountryProperties>;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function toGeometry(value: unknown): Polygon | MultiPolygon {
-  if (!isRecord(value) || !Array.isArray(value.coordinates)) throw new Error('Geometría no válida');
-  if (value.type === 'Polygon') return { type: 'Polygon', coordinates: value.coordinates };
-  if (value.type === 'MultiPolygon')
-    return { type: 'MultiPolygon', coordinates: value.coordinates };
-  throw new Error(`Geometría no soportada: ${String(value.type)}`);
-}
-
 /** Valida el JSON empaquetado y lo convierte en una colección tipada. */
 export function toCountryCollection(
   json: unknown,
 ): FeatureCollection<Polygon | MultiPolygon, CountryProperties> {
-  if (!isRecord(json) || !Array.isArray(json.features))
-    throw new Error('No es una FeatureCollection');
-  const features = json.features.map((feature: unknown): CountryFeature => {
-    if (!isRecord(feature) || !isRecord(feature.properties))
-      throw new Error('Feature sin propiedades');
-    const { id, name, continent } = feature.properties;
-    if (typeof id !== 'string' || typeof name !== 'string' || typeof continent !== 'string') {
-      throw new Error('Feature sin id, nombre o continente');
-    }
-    return {
-      type: 'Feature',
-      geometry: toGeometry(feature.geometry),
-      properties: { id, level: 'country', name, continent },
-    };
-  });
-  return { type: 'FeatureCollection', features };
+  return toAreaCollection(json, (p) => ({
+    id: readString(p, 'id'),
+    level: 'country',
+    name: readString(p, 'name'),
+    continent: readString(p, 'continent'),
+  }));
 }
 
 export const countryAreas = toCountryCollection(rawCountries);
 
-const index = createAreaIndex(countryAreas);
+export const countryIndex = createAreaIndex(countryAreas);
 const names = new Map(countryAreas.features.map((f) => [f.properties.id, f.properties.name]));
 
 export function countryName(code: string): string {
   return names.get(code) ?? code;
 }
 
-/** Resuelve solo el país; región y ciudad llegarán con los límites admin-1 y admin-2. */
+/** Resuelve solo el país (el resolvedor completo está en `places.ts`). */
 export const countryResolver: PlaceResolver = {
   resolve(point) {
-    const feature = index.find(point);
+    const feature = countryIndex.find(point);
     return feature
       ? { countryCode: feature.properties.id, regionId: null, cityId: null, placeId: null }
       : null;
@@ -70,8 +44,7 @@ export const countryResolver: PlaceResolver = {
 
 const NOT_COUNTRIES = new Set(['Antarctica', 'Seven seas (open ocean)']);
 
-export const countryCatalog: UnlockCatalog = {
-  countryCount: countryAreas.features.filter((f) => !NOT_COUNTRIES.has(f.properties.continent))
-    .length,
-  regionCountByCountry: {},
-};
+/** Países que cuentan para "% del mundo" (sin la Antártida ni el mar abierto). */
+export const countryCount = countryAreas.features.filter(
+  (f) => !NOT_COUNTRIES.has(f.properties.continent),
+).length;

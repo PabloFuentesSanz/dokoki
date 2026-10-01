@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   countryAreas,
-  countryCatalog,
+  countryCount,
   countryName,
   countryResolver,
   toCountryCollection,
@@ -15,8 +15,8 @@ describe('countries', () => {
   });
 
   it('el catálogo no cuenta la Antártida ni el mar abierto', () => {
-    expect(countryCatalog.countryCount).toBeLessThan(countryAreas.features.length);
-    expect(countryCatalog.countryCount).toBeGreaterThan(200);
+    expect(countryCount).toBeLessThan(countryAreas.features.length);
+    expect(countryCount).toBeGreaterThan(200);
   });
 
   it('resuelve el país de un punto sin red', () => {

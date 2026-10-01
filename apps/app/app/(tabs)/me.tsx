@@ -10,7 +10,7 @@ import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
-import { countryCatalog, countryName } from '../../features/map/services/countries';
+import { countryCount, countryName } from '../../features/map/services/countries';
 
 const fmtDate = (ms: number | null): string =>
   ms === null ? '' : new Date(ms).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
@@ -42,7 +42,7 @@ export default function MeScreen() {
               { value: String(state.totals.countries), label: 'países' },
               { value: `${String(state.worldPercent).replace('.', ',')} %`, label: 'del mundo' },
               {
-                value: String(countryCatalog.countryCount - state.totals.countries),
+                value: String(countryCount - state.totals.countries),
                 label: 'por descubrir',
               },
             ]}
