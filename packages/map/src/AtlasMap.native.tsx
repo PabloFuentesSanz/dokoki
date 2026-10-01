@@ -9,6 +9,7 @@ import {
   readAreaPress,
   readClusterId,
   toClusterCollection,
+  toFogMask,
   toRouteCollection,
 } from './overlays';
 import type { AtlasMapProps } from './types';
@@ -33,6 +34,10 @@ export function AtlasMap({
 
   const routeData = useMemo(() => toRouteCollection(routes), [routes]);
   const clusterData = useMemo(() => toClusterCollection(photoClusters), [photoClusters]);
+  const maskData = useMemo(
+    () => toFogMask(fog ?? { type: 'FeatureCollection', features: [] }),
+    [fog],
+  );
 
   return (
     <Map
@@ -49,6 +54,11 @@ export function AtlasMap({
       touchPitch={false}
     >
       <Camera initialViewState={initialCamera(initialView)} />
+      {fog ? (
+        <GeoJSONSource id={ATLAS_SOURCES.fogMask} data={maskData}>
+          {bySource(ATLAS_SOURCES.fogMask)}
+        </GeoJSONSource>
+      ) : null}
       {fog ? (
         <GeoJSONSource
           id={ATLAS_SOURCES.fog}

@@ -3,8 +3,9 @@
  * Todo es puro: aquí se decide QUÉ se pinta; AtlasMap.native/.web solo lo montan.
  */
 import { colors } from '@atlas/design-system/tokens';
-import type { FeatureCollection, LineString, Point } from 'geojson';
+import type { FeatureCollection, LineString, Point, Polygon, Position } from 'geojson';
 import type {
+  FogLayer,
   AreaLevel,
   AreaPress,
   MapInitialView,
@@ -19,10 +20,11 @@ import type {
  * TODO(M1.1): sustituir por el estilo propio "Cuaderno de explorador" hecho en Maputnik
  * (tierra paper, agua water, etiquetas en serif) y servirlo desde Cloudflare.
  */
-export const ATLAS_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
+export const ATLAS_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
 export const ATLAS_SOURCES = {
   fog: 'atlas-fog',
+  fogMask: 'atlas-fog-mask',
   routes: 'atlas-routes',
   photos: 'atlas-photos',
 } as const;
@@ -64,13 +66,14 @@ type GetExpression = ['get', string];
 type EqualsFilter = ['==', GetExpression, string | boolean];
 type AllFilter = ['all', EqualsFilter, EqualsFilter];
 type LinearInterpolation = ['interpolate', ['linear'], GetExpression, ...number[]];
+type ZoomInterpolation = ['interpolate', ['linear'], ['zoom'], ...number[]];
 type Visibility = 'visible' | 'none';
 
 interface FillOverlay {
   id: string;
   type: 'fill';
   source: string;
-  filter: AllFilter;
+  filter?: AllFilter | EqualsFilter;
   minzoom?: number;
   maxzoom?: number;
   layout: { visibility: Visibility };
@@ -81,9 +84,17 @@ interface LineOverlay {
   id: string;
   type: 'line';
   source: string;
-  filter: EqualsFilter;
+  filter: EqualsFilter | AllFilter;
+  minzoom?: number;
+  maxzoom?: number;
   layout: { visibility: Visibility; 'line-cap': 'round'; 'line-join': 'round' };
-  paint: { 'line-color': string; 'line-width': number; 'line-dasharray'?: number[] };
+  paint: {
+    'line-color': string;
+    'line-width': number | ZoomInterpolation;
+    'line-dasharray'?: number[];
+    'line-blur'?: ZoomInterpolation;
+    'line-opacity'?: number;
+  };
 }
 
 interface CircleOverlay {
@@ -111,28 +122,107 @@ const ROUTE_PAINT: Record<RouteKind, { color: string; dash?: number[] }> = {
 /** A partir de este zoom se ven las regiones dentro de los países visitados. */
 export const REGION_ZOOM = 4.5;
 
-function fill(
-  id: string,
-  level: 'country' | 'region',
-  unlocked: boolean,
-  visibility: Visibility,
-  zoom: { minzoom?: number; maxzoom?: number } = {},
-): FillOverlay {
+/**
+ * Niebla de videojuego: lo no visitado queda bajo una capa de papel casi opaca y lo visitado se
+ * ve limpio, con el mapa a color debajo. El borde se difumina hacia dentro de lo descubierto,
+ * así la niebla "se retira" en vez de cortarse en seco.
+ */
+const FOG_COLOR = colors.paperRaised;
+const FOG_OPACITY = 0.95;
+/** Ancho (y desenfoque) del borde difuminado según el zoom, en px. */
+const FOG_EDGE: ZoomInterpolation = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  0,
+  3,
+  3,
+  7,
+  6,
+  16,
+  10,
+  36,
+];
+
+type Level = 'country' | 'region';
+type ZoomRange = { minzoom?: number; maxzoom?: number };
+
+function areaFilter(level: Level, unlocked: boolean): AllFilter {
+  return ['all', ['==', ['get', 'level'], level], ['==', ['get', 'unlocked'], unlocked]];
+}
+
+/** Áreas transparentes: no se ven, pero se pueden tocar para abrir su ficha. */
+function touchable(id: string, level: Level, zoom: ZoomRange = {}): FillOverlay {
   return {
     id,
     type: 'fill',
     source: ATLAS_SOURCES.fog,
-    filter: ['all', ['==', ['get', 'level'], level], ['==', ['get', 'unlocked'], unlocked]],
+    filter: ['==', ['get', 'level'], level],
     ...zoom,
-    layout: { visibility },
-    // La niebla no se comunica solo con color: el borde también la distingue.
-    paint: unlocked
-      ? { 'fill-color': colors.landVisited, 'fill-opacity': 0.55 }
-      : {
-          'fill-color': colors.paperSunk,
-          'fill-opacity': 0.92,
-          'fill-outline-color': colors.inkMuted,
-        },
+    layout: { visibility: 'visible' },
+    paint: { 'fill-color': FOG_COLOR, 'fill-opacity': 0 },
+  };
+}
+
+/** Borde de niebla difuminado alrededor de lo descubierto. */
+function fogEdge(
+  id: string,
+  level: Level,
+  visibility: Visibility,
+  zoom: ZoomRange = {},
+): LineOverlay {
+  return {
+    id,
+    type: 'line',
+    source: ATLAS_SOURCES.fog,
+    filter: areaFilter(level, true),
+    ...zoom,
+    layout: { visibility, 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-color': FOG_COLOR,
+      'line-width': FOG_EDGE,
+      'line-blur': FOG_EDGE,
+      'line-opacity': 0.6,
+    },
+  };
+}
+
+/** Rectángulo del mundo (latitudes Web Mercator). */
+const WORLD_RING: Position[] = [
+  [-180, -85],
+  [180, -85],
+  [180, 85],
+  [-180, 85],
+  [-180, -85],
+];
+
+/**
+ * Velo de niebla sobre el mundo entero (tierra y mar) con un agujero por cada país visitado.
+ * Cada parte de un país (islas incluidas) aporta su anillo exterior como agujero.
+ */
+export function toFogMask(fog: FogLayer): FeatureCollection<Polygon, { id: string }> {
+  const holes: Position[][] = [];
+  for (const feature of fog.features) {
+    const { level, unlocked } = feature.properties;
+    if (level !== 'country' || !unlocked) continue;
+    const polygons =
+      feature.geometry.type === 'Polygon'
+        ? [feature.geometry.coordinates]
+        : feature.geometry.coordinates;
+    for (const polygon of polygons) {
+      const [outer] = polygon;
+      if (outer) holes.push(outer);
+    }
+  }
+  return {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { id: 'fog' },
+        geometry: { type: 'Polygon', coordinates: [WORLD_RING, ...holes] },
+      },
+    ],
   };
 }
 
@@ -158,12 +248,28 @@ export function overlayLayers(visible: Partial<Record<MapLayerId, boolean>> = {}
   });
 
   return [
-    // Países: niebla sobre los no visitados a cualquier zoom; los visitados se ven en color
-    // de lejos y, al acercarse, dejan paso a sus regiones.
-    fill('atlas-fog', 'country', false, visibility('fog')),
-    fill('atlas-unlocked', 'country', true, visibility('unlocked'), { maxzoom: REGION_ZOOM }),
-    fill('atlas-region-fog', 'region', false, visibility('fog'), { minzoom: REGION_ZOOM }),
-    fill('atlas-region-unlocked', 'region', true, visibility('unlocked'), { minzoom: REGION_ZOOM }),
+    // Velo de niebla sobre todo el mundo menos los países visitados. Al acercarse, dentro de
+    // esos países la niebla vuelve sobre las regiones que aún no has pisado.
+    {
+      id: 'atlas-fog',
+      type: 'fill',
+      source: ATLAS_SOURCES.fogMask,
+      layout: { visibility: visibility('fog') },
+      paint: { 'fill-color': FOG_COLOR, 'fill-opacity': FOG_OPACITY },
+    },
+    {
+      id: 'atlas-region-fog',
+      type: 'fill',
+      source: ATLAS_SOURCES.fog,
+      filter: areaFilter('region', false),
+      minzoom: REGION_ZOOM,
+      layout: { visibility: visibility('fog') },
+      paint: { 'fill-color': FOG_COLOR, 'fill-opacity': FOG_OPACITY },
+    },
+    fogEdge('atlas-fog-edge', 'country', visibility('fog')),
+    fogEdge('atlas-region-fog-edge', 'region', visibility('fog'), { minzoom: REGION_ZOOM }),
+    touchable('atlas-countries', 'country', { maxzoom: REGION_ZOOM }),
+    touchable('atlas-regions', 'region', { minzoom: REGION_ZOOM }),
     ...routeLayers,
     {
       id: 'atlas-photos',

@@ -10,6 +10,7 @@ import {
   readAreaPress,
   readClusterId,
   toClusterCollection,
+  toFogMask,
   toRouteCollection,
 } from './overlays';
 import type { AtlasMapProps, FogLayer } from './types';
@@ -37,6 +38,9 @@ export function AtlasMap({
   const data = useMemo(
     () => ({
       [ATLAS_SOURCES.fog]: fog ?? EMPTY,
+      [ATLAS_SOURCES.fogMask]: fog
+        ? toFogMask(fog)
+        : { type: 'FeatureCollection' as const, features: [] },
       [ATLAS_SOURCES.routes]: toRouteCollection(routes),
       [ATLAS_SOURCES.photos]: toClusterCollection(photoClusters),
     }),

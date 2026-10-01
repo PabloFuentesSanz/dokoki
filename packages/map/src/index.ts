@@ -9,6 +9,7 @@ export {
   readAreaPress,
   readClusterId,
   toClusterCollection,
+  toFogMask,
   toRouteCollection,
 } from './overlays';
 export { AtlasMap } from './AtlasMap';
