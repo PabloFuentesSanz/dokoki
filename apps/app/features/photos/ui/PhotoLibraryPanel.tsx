@@ -30,6 +30,7 @@ export function PhotoLibraryPanel() {
     cancel,
     pickMore,
   } = usePhotoLibrary();
+  const { bases } = useSettings();
 
   if (status === 'unsupported') {
     return (
