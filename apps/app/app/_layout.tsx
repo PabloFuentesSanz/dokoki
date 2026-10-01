@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PhotoLibraryProvider } from '../features/photos/store/PhotoLibraryProvider';
 import { SettingsProvider } from '../features/settings/store/SettingsProvider';
+import { TripEditsProvider } from '../features/trips/store/TripEditsProvider';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -38,9 +39,14 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <SettingsProvider>
         <PhotoLibraryProvider>
-          <Stack
-            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}
-          />
+          <TripEditsProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.paper },
+              }}
+            />
+          </TripEditsProvider>
         </PhotoLibraryProvider>
       </SettingsProvider>
     </SafeAreaProvider>

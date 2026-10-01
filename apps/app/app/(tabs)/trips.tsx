@@ -1,4 +1,4 @@
-import { EmptyState, TripRow } from '@atlas/design-system';
+import { Button, EmptyState, TripRow } from '@atlas/design-system';
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { Screen } from '../../components/Screen';
@@ -12,6 +12,9 @@ export default function TripsScreen() {
   const { trips, needsBase } = useTrips();
   return (
     <Screen title="Tus viajes">
+      <Button variant="secondary" icon="plus" onPress={() => router.push('/trip-new')}>
+        Crear un viaje
+      </Button>
       {needsBase ? (
         <EmptyState
           icon="pin"
@@ -35,7 +38,7 @@ export default function TripsScreen() {
               key={trip.id}
               n={trips.length - i}
               title={trip.name}
-              meta={tripMeta(trip)}
+              meta={trip.locked ? tripMeta(trip) : `${tripMeta(trip)}, por revisar`}
               onPress={() => router.push({ pathname: '/trip/[id]', params: { id: trip.id } })}
             />
           ))}

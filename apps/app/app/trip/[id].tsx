@@ -18,6 +18,7 @@ import { cityById } from '../../features/map/services/cities';
 import { countryName } from '../../features/map/services/countries';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
 import { tripMeta, useTrips } from '../../features/trips/hooks/useTrips';
+import { TripEditor } from '../../features/trips/ui/TripEditor';
 
 /**
  * M4.2 · Detalle de viaje (versión inicial): ruta entre ciudades en orden, cifras y fotos en el mapa.
@@ -25,9 +26,11 @@ import { tripMeta, useTrips } from '../../features/trips/hooks/useTrips';
  */
 export default function TripScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { trips } = useTrips();
+  const tripsResult = useTrips();
+  const { trips } = tripsResult;
   const { photos } = usePhotoLibrary();
-  const trip = trips.find((t) => t.id === id);
+  const index = trips.findIndex((t) => t.id === id);
+  const trip = trips[index];
 
   const { clusters, route, bounds } = useMemo(() => {
     if (!trip) return { clusters: [], route: [], bounds: undefined };
@@ -107,6 +110,13 @@ export default function TripScreen() {
           </Text>
         ))}
       </View>
+      <TripEditor
+        key={`${trip.id}-${trip.name}-${String(trip.locked)}`}
+        trip={trip}
+        previous={trips[index + 1]}
+        next={index > 0 ? trips[index - 1] : undefined}
+        actions={tripsResult}
+      />
     </Screen>
   );
 }
