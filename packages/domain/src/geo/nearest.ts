@@ -2,7 +2,7 @@
  * Punto más cercano con una rejilla: para asignar cada foto a su ciudad sin recorrer las
  * ~24.000 ciudades en cada búsqueda.
  */
-import { haversineKm, type LatLng } from './index';
+import { haversineKm, type LatLng } from './coords';
 
 const KM_PER_DEGREE = 111.32;
 

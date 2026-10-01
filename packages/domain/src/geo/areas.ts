@@ -3,7 +3,7 @@
  * Sin red: el dataset viaja dentro de la app.
  */
 import type { Feature, FeatureCollection, MultiPolygon, Polygon, Position } from 'geojson';
-import type { LatLng } from './index';
+import type { LatLng } from './coords';
 
 type AreaGeometry = Polygon | MultiPolygon;
 
