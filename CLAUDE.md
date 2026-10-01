@@ -121,15 +121,16 @@ cd apps/app && npm run web  # la app en el navegador
    expo-sqlite y solo fotos nuevas al abrir (hecho, `features/photos`).
 3. **domain/photos + datos geográficos** (HU-06): país (Natural Earth), región (admin-1) y ciudad
    más cercana (GeoNames ≥ 15.000 hab.), todo en el dispositivo (hecho, `features/map/services`).
-4. **domain/trips** (HU-21): detección automática con base = ciudad con más fotos (hecho, lista y
-   detalle básicos). Falta corregir: confirmar, fusionar, dividir, renombrar (HU-22).
-5. **map** (M1): niebla por país y por región al acercarse, fichas de país (hecho, versión inicial).
-   Falta: capas (M1.2), viaje en el tiempo (M1.3), fichas de región y ciudad, búsqueda.
-6. **onboarding** (M0): portada, onboarding, registro, permisos, confirmar la base.
-7. **photos** (M3): galería por lugar y tiempo, detalle, corrección, sin ubicación.
-8. **trips** (M4): detalle completo con días y notas, editor.
-9. **exploration** (M2, dentro de `features/map`): progreso y pasaporte de sellos.
-10. **sharing** (M8): crear tarjeta y compartir fuera.
+4. **Viajes** (HU-21, HU-22): detección con tus bases (varias, con periodo, M0.5), corrección
+   (renombrar, confirmar, unir, dividir, descartar) y creación a mano (hecho).
+5. **Mapa** (M1): niebla de verdad (velo sobre el mundo con agujeros), regiones al acercarse,
+   fichas de país, capas (M1.2) y viaje en el tiempo (M1.3) (hecho). Falta: fichas de región y
+   ciudad, búsqueda (M1.8).
+6. **Fotos sin ubicación** (M3.5, HU-19): sugerencia por fecha, en lote o a mano (hecho).
+7. **Pasaporte** (M2.2) y **tarjetas para compartir** (M8.4, M8.5) (hecho, versión inicial).
+8. **onboarding** (M0): portada, onboarding, registro, permisos.
+9. **photos** (M3): galería por lugar y tiempo, detalle, corrección de una foto, ocultar.
+10. **trips** (M4): días y notas (HandNote) en el detalle.
 11. **settings** (M10): ajustes, privacidad, almacenamiento, datos y **Créditos** (obligatorio
     citar GeoNames, CC BY 4.0; ver `apps/app/features/map/data/README.md`).
 
