@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { focusRingStyle, useFocusRing } from '../../internal/useFocusRing';
-import { colors, iconSizes, typography } from '../../tokens';
+import { colors, iconSizes, spacing, typography } from '../../tokens';
 import { CaptureButton } from '../CaptureButton/CaptureButton';
 import { Icon, type IconName } from '../Icon/Icon';
 
@@ -19,6 +19,8 @@ export interface BottomNavProps {
   onNavigate?: (tab: NavTab) => void;
   /** Abre la hoja de captura. */
   onCapture?: () => void;
+  /** Zona segura inferior del dispositivo (barra de inicio del iPhone). La barra la rellena con papel. */
+  bottomInset?: number;
 }
 
 function NavItem({
@@ -49,7 +51,7 @@ function NavItem({
 }
 
 /** Barra inferior de móvil (< 600 px): Mapa, Viajes, Captura, Fotos, Tú. */
-export function BottomNav({ active, onNavigate, onCapture }: BottomNavProps) {
+export function BottomNav({ active, onNavigate, onCapture, bottomInset = 0 }: BottomNavProps) {
   const [first, second, third, fourth] = NAV_ITEMS;
   const render = (item: (typeof NAV_ITEMS)[number] | undefined) =>
     item ? (
@@ -61,7 +63,12 @@ export function BottomNav({ active, onNavigate, onCapture }: BottomNavProps) {
       />
     ) : null;
   return (
-    <View role="tablist" aria-label="Principal" style={styles.bar}>
+    <View
+      role="tablist"
+      aria-label="Principal"
+      // La zona segura ya deja aire bajo las etiquetas: no se suma un margen fijo encima.
+      style={[styles.bar, { paddingBottom: Math.max(spacing[2], bottomInset - spacing[3]) }]}
+    >
       {render(first)}
       {render(second)}
       <CaptureButton onPress={onCapture} />
@@ -76,9 +83,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 8,
-    paddingHorizontal: 12,
-    paddingBottom: 20,
+    paddingTop: spacing[2],
+    paddingHorizontal: spacing[3],
     backgroundColor: colors.paperRaised,
     borderTopWidth: 1,
     borderTopColor: colors.ink,

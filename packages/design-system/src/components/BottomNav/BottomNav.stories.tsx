@@ -21,3 +21,5 @@ type Story = StoryObj<typeof meta>;
 
 export const Map: Story = {};
 export const Trips: Story = { args: { active: 'trips' } };
+/** iPhone con barra de inicio: la zona segura (34 px) sustituye al margen inferior. */
+export const WithHomeIndicator: Story = { args: { bottomInset: 34 } };

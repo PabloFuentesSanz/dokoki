@@ -12,7 +12,7 @@ iOS, Android y web: Expo (React Native) + TypeScript + Turborepo + Supabase + Ma
 | Carpeta                  | Qué hay                                                                       |
 | ------------------------ | ----------------------------------------------------------------------------- |
 | `apps/app`               | La app Expo (Expo Router): iOS, Android y web                                 |
-| `packages/design-system` | "Cuaderno de explorador": tokens y 31 componentes React Native, con Storybook |
+| `packages/design-system` | "Cuaderno de explorador": tokens y 33 componentes React Native, con Storybook |
 | `packages/domain`        | Lógica pura: fotos → lugares, detección de viajes, niebla, gastos             |
 | `packages/map`           | `AtlasMap`: MapLibre nativo y web detrás de una sola interfaz                 |
 | `docs`                   | Especificación, stack, design system y capturas de pantallas                  |

@@ -4,7 +4,7 @@ Estilo C de la especificación: estructura limpia y moderna, y piezas de papel (
 celo, billetes perforados, notas a mano) solo donde cuentan algo. **Solo modo claro.**
 
 - Artefacto vivo (fuente de diseño): <https://claude.ai/artifact/RKn5dmdwhqzTSzqvygC3fx>
-- Código: `packages/design-system` (tokens + 31 componentes React Native para iOS, Android y web).
+- Código: `packages/design-system` (tokens + 33 componentes React Native para iOS, Android y web).
 - Fuente de verdad de los tokens: `packages/design-system/src/tokens/tokens.json`. Las constantes
   TypeScript (`src/tokens/index.ts`) se generan con `npm run tokens` y un test falla si no están al día.
 - Storybook: `npm run storybook` (web, sobre react-native-web). Cada componente tiene su `.stories.tsx`.
@@ -171,7 +171,7 @@ no con banderas.
 - Accesibilidad: contraste AA, nunca solo el color para dar significado (el trazo y la palabra
   también informan), roles y nombres accesibles en todos los controles.
 
-## Componentes: 31
+## Componentes: 33
 
 El artefacto define 31 componentes (el brief inicial hablaba de 29; se implementan todos). Las props
 son las del artefacto con dos adaptaciones a React Native: `onClick` → `onPress` y `href` → `onPress`.
@@ -519,11 +519,12 @@ Deslizador de años para ver cómo se fue desbloqueando el mapa (M1.3). Cada añ
 
 Barra inferior de móvil (< 600 px): Mapa, Viajes, Captura, Fotos, Tú.
 
-| Prop                   | Tipo                    | Uso                      |
-| ---------------------- | ----------------------- | ------------------------ |
-| `active` (obligatoria) | `NavTab`                |                          |
-| `onNavigate`           | `(tab: NavTab) => void` |                          |
-| `onCapture`            | `() => void`            | Abre la hoja de captura. |
+| Prop                   | Tipo                    | Uso                                                                                                              |
+| ---------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `active` (obligatoria) | `NavTab`                |                                                                                                                  |
+| `onNavigate`           | `(tab: NavTab) => void` |                                                                                                                  |
+| `onCapture`            | `() => void`            | Abre la hoja de captura.                                                                                         |
+| `bottomInset`          | `number`                | Zona segura inferior (barra de inicio del iPhone). Sustituye al margen inferior: la barra queda pegada al borde. |
 
 ### 30. SideNav
 
@@ -546,3 +547,28 @@ Estado vacío con recuadro discontinuo, que invita a actuar. Sin disculpas ni ch
 | `body` (obligatoria)  | `string`     | Qué hacer.              |
 | `action`              | `string`     | Texto del botón.        |
 | `onAction`            | `() => void` |                         |
+
+### 32. Paper (nuevo en el código, pendiente de añadir al artefacto)
+
+El papel del cuaderno: color de fondo y un grano muy suave, como la clase `at-paper` de los
+artboards. El grano es una tesela de puntos con `react-native-svg` (sin imágenes), decorativo y
+oculto a lectores de pantalla. Lo usa `Screen` en todas las pantallas.
+
+| Prop       | Tipo                   | Uso                                          |
+| ---------- | ---------------------- | -------------------------------------------- |
+| `tone`     | `'paper' \| 'raised'`  | `paper` para pantallas, `raised` para hojas. |
+| `style`    | `StyleProp<ViewStyle>` |                                              |
+| `children` | `ReactNode`            |                                              |
+
+### 33. SegmentedTabs (nuevo en el código, pendiente de añadir al artefacto)
+
+Pestañas segmentadas en tinta de los artboards M3.1 y M4.1 ("Por lugar / Por tiempo",
+"Próximos / En curso / Pasados"). La elegida se rellena de tinta y va en negrita (no solo color);
+44 px de alto.
+
+| Prop                    | Tipo                                     | Uso                         |
+| ----------------------- | ---------------------------------------- | --------------------------- |
+| `label` (obligatoria)   | `string`                                 | Nombre accesible del grupo. |
+| `options` (obligatoria) | `readonly { value: T; label: string }[]` |                             |
+| `value` (obligatoria)   | `T`                                      |                             |
+| `onChange`              | `(value: T) => void`                     |                             |

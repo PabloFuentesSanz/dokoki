@@ -29,4 +29,11 @@ describe('BottomNav', () => {
     expect(onNavigate).toHaveBeenCalledWith('photos');
     expect(onCapture).toHaveBeenCalledTimes(1);
   });
+
+  it('se pega al borde inferior: solo la zona segura del dispositivo, sin margen extra', () => {
+    const { rerender } = render(<BottomNav active="map" />);
+    expect(screen.getByRole('tablist')).toHaveStyle({ paddingBottom: '8px' });
+    rerender(<BottomNav active="map" bottomInset={34} />);
+    expect(screen.getByRole('tablist')).toHaveStyle({ paddingBottom: '22px' });
+  });
 });

@@ -39,7 +39,7 @@ dispositivo; la nube solo guarda identificadores de lugar, viajes y miniaturas s
 
 ```
 apps/app                 Expo (iOS, Android, web)
-packages/design-system   tokens + 31 componentes RN + Storybook
+packages/design-system   tokens + 33 componentes RN + Storybook
 packages/domain          lógica pura (fotos, viajes, niebla, gastos) sin UI ni red
 packages/map             AtlasMap: una interfaz, motor nativo y web
 ```
