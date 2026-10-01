@@ -1,5 +1,6 @@
 import {
   Breadcrumbs,
+  Button,
   EmptyState,
   ProgressBar,
   Stamp,
@@ -54,6 +55,15 @@ export default function CountryScreen() {
           <View style={styles.stamp}>
             <Stamp label={name} date={stampDate(entry.firstVisitedAt)} />
           </View>
+          <Button
+            variant="secondary"
+            icon="share"
+            onPress={() =>
+              router.push({ pathname: '/share', params: { kind: 'country', id: code } })
+            }
+          >
+            {`Compartir ${name}`}
+          </Button>
           <StatStrip
             stats={[
               { value: `${regionPct} %`, label: 'regiones' },

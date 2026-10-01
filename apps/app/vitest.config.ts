@@ -11,6 +11,7 @@ export default defineConfig({
   define: { __DEV__: 'false' },
   test: {
     environment: 'jsdom',
+    setupFiles: ['./vitest.setup.ts'],
     include: ['features/**/*.test.{ts,tsx}'],
     server: { deps: { inline: ['react-native-svg', 'react-native-web'] } },
   },

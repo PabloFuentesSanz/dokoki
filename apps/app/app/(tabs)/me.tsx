@@ -64,6 +64,18 @@ export default function MeScreen() {
               },
             ]}
           />
+          <View style={styles.actions}>
+            <Button icon="ticket" onPress={() => router.push('/passport')}>
+              Ver mi pasaporte
+            </Button>
+            <Button
+              variant="secondary"
+              icon="share"
+              onPress={() => router.push({ pathname: '/share', params: { kind: 'passport' } })}
+            >
+              Compartir
+            </Button>
+          </View>
           <Text role="heading" style={styles.heading}>
             Tus países
           </Text>
@@ -94,4 +106,5 @@ const styles = StyleSheet.create({
   list: { gap: spacing[3] },
   row: { gap: spacing[1] },
   meta: { ...typography.data, color: colors.inkMuted },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
 });

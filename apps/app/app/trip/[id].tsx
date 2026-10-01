@@ -1,5 +1,6 @@
 import { clusterPhotos } from '@atlas/domain';
 import {
+  Button,
   CountryChip,
   EmptyState,
   RouteLine,
@@ -110,6 +111,12 @@ export default function TripScreen() {
           </Text>
         ))}
       </View>
+      <Button
+        icon="share"
+        onPress={() => router.push({ pathname: '/share', params: { kind: 'trip', id: trip.id } })}
+      >
+        Crear tarjeta para compartir
+      </Button>
       <TripEditor
         key={`${trip.id}-${trip.name}-${String(trip.locked)}`}
         trip={trip}
