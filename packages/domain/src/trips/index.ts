@@ -22,6 +22,10 @@ export interface TripPhoto {
 /** Dónde vive el usuario (M0.5). */
 export interface HomeBase {
   location: LatLng;
+  /** Desde cuándo es tu base (epoch ms). Sin valor: desde siempre. */
+  from?: number;
+  /** Hasta cuándo fue tu base (epoch ms). Sin valor: hasta hoy. */
+  until?: number;
   /** Radio a partir del cual se considera "fuera de casa". 50 km por defecto. */
   radiusKm?: number;
 }
@@ -120,6 +124,22 @@ function buildTrip(photos: NonEmpty<TripPhoto>, locked: boolean): DetectedTrip {
 }
 
 /**
+ * ¿Estaba en casa? Cerca de alguna base vigente en la fecha de la foto. Se puede tener varias
+ * bases a la vez (casa y pueblo) o sucesivas (Madrid hasta 2019, después Barcelona).
+ */
+export function isAtHome(
+  photo: Pick<TripPhoto, 'location' | 'takenAt'>,
+  homes: readonly HomeBase[],
+): boolean {
+  return homes.some(
+    (home) =>
+      (home.from === undefined || photo.takenAt >= home.from) &&
+      (home.until === undefined || photo.takenAt <= home.until) &&
+      haversineKm(photo.location, home.location) <= (home.radiusKm ?? DEFAULT_HOME_RADIUS_KM),
+  );
+}
+
+/**
  * Agrupa las fotos en viajes.
  *
  * Algoritmo: ordena por fecha y recorre una vez (O(n log n) por la ordenación).
@@ -130,12 +150,14 @@ function buildTrip(photos: NonEmpty<TripPhoto>, locked: boolean): DetectedTrip {
  */
 export function detectTrips(
   photos: readonly TripPhoto[],
-  home: HomeBase,
+  home: HomeBase | readonly HomeBase[],
   options: DetectTripsOptions = {},
 ): DetectedTrip[] {
   const maxGapMs = (options.maxGapDays ?? 2) * DAY_MS;
   const minPhotos = options.minPhotos ?? 1;
-  const radiusKm = home.radiusKm ?? DEFAULT_HOME_RADIUS_KM;
+  const homes: readonly HomeBase[] = Array.isArray(home) ? home : [home];
+  // Sin base no se puede saber qué es un viaje.
+  if (homes.length === 0) return [...(options.locked ?? [])];
   const locked = options.locked ?? [];
   const lockedPhotoIds = new Set(locked.flatMap((trip) => trip.photoIds));
 
@@ -151,7 +173,7 @@ export function detectTrips(
   };
 
   for (const photo of sorted) {
-    const away = haversineKm(photo.location, home.location) > radiusKm;
+    const away = !isAtHome(photo, homes);
     if (!away) {
       close();
       continue;

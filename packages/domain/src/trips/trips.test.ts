@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { detectTrips, mergeTrips, splitTrip, type HomeBase, type TripPhoto } from './index';
+import {
+  detectTrips,
+  isAtHome,
+  mergeTrips,
+  splitTrip,
+  type HomeBase,
+  type TripPhoto,
+} from './index';
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -147,6 +154,27 @@ describe('detectTrips', () => {
 
     const trips = detectTrips(later, MADRID, { locked: [locked] });
     expect(trips.map((t) => t.name)).toEqual(['Japón con Lucía', 'Lisboa']);
+  });
+
+  it('con varias bases, estar cerca de cualquiera es estar en casa', () => {
+    const LISBOA: HomeBase = { location: CITIES.lisboa.location };
+    const photos = [p('l1', T0, 'lisboa'), p('k1', T0 + 3 * DAY, 'kioto')];
+    expect(detectTrips(photos, [MADRID, LISBOA]).map((t) => t.photoIds)).toEqual([['k1']]);
+  });
+
+  it('las bases tienen periodo: Lisboa fue base hasta T0, después es un viaje', () => {
+    const bases: HomeBase[] = [MADRID, { location: CITIES.lisboa.location, until: T0 }];
+    const photos = [p('l1', T0 - DAY, 'lisboa'), p('l2', T0 + 10 * DAY, 'lisboa')];
+    expect(detectTrips(photos, bases).map((t) => t.photoIds)).toEqual([['l2']]);
+    expect(
+      isAtHome({ location: CITIES.lisboa.location, takenAt: T0 - DAY }, [
+        { location: CITIES.lisboa.location, from: T0 },
+      ]),
+    ).toBe(false);
+  });
+
+  it('sin bases no se detectan viajes (salvo los ya bloqueados)', () => {
+    expect(detectTrips(japan, [])).toEqual([]);
   });
 
   it('sin fotos no hay viajes', () => {
