@@ -16,6 +16,8 @@ import { Screen } from '../../components/Screen';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
 import { continentName, countryName } from '../../features/map/services/countries';
 import { regionsOf } from '../../features/map/services/regions';
+import { useGallery } from '../../features/photos/hooks/useGallery';
+import { PhotoPreview } from '../../features/photos/ui/PhotoPreview';
 import { tripMeta, useTrips } from '../../features/trips/hooks/useTrips';
 
 const stampDate = (ms: number | null): string =>
@@ -27,12 +29,13 @@ const stampDate = (ms: number | null): string =>
 
 /**
  * M1.4 · Ficha de país. Tanda 2. Toque firma: el sello del país.
- * TODO(M1.4): ciudades, fotos, marcar a mano (M1.4c) y doble vista con mapa en escritorio.
+ * TODO(M1.4): ciudades, marcar a mano (M1.4c) y doble vista con mapa en escritorio.
  */
 export default function CountryScreen() {
   const { code = '' } = useLocalSearchParams<{ code: string }>();
   const { state } = useUnlockState();
   const { trips } = useTrips();
+  const gallery = useGallery(`country:${code}`);
 
   const name = countryName(code);
   const entry = state.countries[code];
@@ -81,6 +84,8 @@ export default function CountryScreen() {
               detail={`${visitedRegions.length} de ${regions.length}`}
             />
           ) : null}
+
+          <PhotoPreview photos={gallery.photos} scope={`country:${code}`} />
 
           {countryTrips.length > 0 ? (
             <View>

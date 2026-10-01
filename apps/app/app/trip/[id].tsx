@@ -17,13 +17,15 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { cityById } from '../../features/map/services/cities';
 import { countryName } from '../../features/map/services/countries';
+import { useGallery } from '../../features/photos/hooks/useGallery';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
+import { PhotoPreview } from '../../features/photos/ui/PhotoPreview';
 import { tripMeta, useTrips } from '../../features/trips/hooks/useTrips';
 import { TripEditor } from '../../features/trips/ui/TripEditor';
 
 /**
  * M4.2 · Detalle de viaje (versión inicial): ruta entre ciudades en orden, cifras y fotos en el mapa.
- * TODO(M4.2): días, notas (HandNote), portada y compartir.
+ * TODO(M4.2): días y notas (HandNote).
  */
 export default function TripScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,6 +34,7 @@ export default function TripScreen() {
   const { photos } = usePhotoLibrary();
   const index = trips.findIndex((t) => t.id === id);
   const trip = trips[index];
+  const gallery = useGallery(`trip:${id ?? ''}`);
 
   const { clusters, route, bounds } = useMemo(() => {
     if (!trip) return { clusters: [], route: [], bounds: undefined };
@@ -104,6 +107,7 @@ export default function TripScreen() {
           />
         ))}
       </View>
+      <PhotoPreview photos={gallery.photos} scope={`trip:${trip.id}`} />
       <View style={styles.list}>
         {trip.cities.map((city) => (
           <Text key={city.cityId} style={styles.item}>

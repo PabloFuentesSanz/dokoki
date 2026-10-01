@@ -64,7 +64,10 @@ interface PhotoLibraryContextValue extends PhotoLibraryState {
   scan: (options?: { full?: boolean }) => Promise<void>;
   cancel: () => void;
   pickMore: () => Promise<void>;
-  /** Da ubicación a fotos de la bandeja (M3.5, HU-19). Se guarda como ubicación manual. */
+  /**
+   * Da ubicación a fotos de la bandeja (M3.5, HU-19) o corrige la de fotos ya colocadas (M3.4b).
+   * Se guarda como ubicación manual: una relectura del carrete no la pisa.
+   */
   assignLocations: (
     items: readonly { ids: readonly string[]; location: LatLng }[],
   ) => Promise<void>;
@@ -254,7 +257,9 @@ export function PhotoLibraryProvider({ children }: { children: ReactNode }) {
 
   const assignLocations = useCallback(
     async (items: readonly { ids: readonly string[]; location: LatLng }[]) => {
-      const takenAt = new Map(stateRef.current.unlocated.map((u) => [u.id, u.takenAt]));
+      const takenAt = new Map(
+        [...stateRef.current.unlocated, ...stateRef.current.photos].map((p) => [p.id, p.takenAt]),
+      );
       const rows: StoredPhoto[] = [];
       for (const { ids, location } of items) {
         const place = placeResolver.resolve(location);
@@ -279,10 +284,13 @@ export function PhotoLibraryProvider({ children }: { children: ReactNode }) {
         ...s,
         unlocated: s.unlocated.filter((u) => !moved.has(u.id)),
         photos: [
-          ...s.photos,
+          ...s.photos.filter((p) => !moved.has(p.id)),
           ...rows.map(({ id, takenAt: at, location }) => ({ id, takenAt: at, location })),
         ].sort(byTakenAt),
-        assignments: [...s.assignments, ...toAssignments(rows)],
+        assignments: [
+          ...s.assignments.filter((a) => !moved.has(a.photoId)),
+          ...toAssignments(rows),
+        ],
       }));
       await sqlitePhotoStore.assignManual(rows);
     },
