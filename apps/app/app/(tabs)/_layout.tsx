@@ -29,11 +29,7 @@ function NavBar({ state, navigation, wide }: BottomTabBarProps & { wide: boolean
       </View>
     );
   }
-  return (
-    <View style={{ paddingBottom: insets.bottom, backgroundColor: colors.paperRaised }}>
-      <BottomNav active={active} onNavigate={onNavigate} />
-    </View>
-  );
+  return <BottomNav active={active} onNavigate={onNavigate} bottomInset={insets.bottom} />;
 }
 
 /** < 600 px: BottomNav. ≥ 600 px: SideNav a la izquierda con el contenido (y el mapa) a la derecha. */
