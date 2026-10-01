@@ -203,3 +203,29 @@ export function clusterPhotos(points: readonly LatLng[], cellDegrees: number): P
     count: cell.count,
   }));
 }
+
+/**
+ * El elemento más cercano en el tiempo dentro de una ventana, sobre una lista YA ORDENADA por
+ * `takenAt`. Búsqueda binaria: O(log n), pensada para miles de fotos sin ubicación (HU-19).
+ * A igual distancia gana el anterior.
+ */
+export function nearestInTime<T extends { takenAt: number }>(
+  takenAt: number,
+  sorted: readonly T[],
+  windowMs: number,
+): T | null {
+  let low = 0;
+  let high = sorted.length;
+  while (low < high) {
+    const mid = (low + high) >> 1;
+    if (Number(sorted[mid]?.takenAt) < takenAt) low = mid + 1;
+    else high = mid;
+  }
+  // `low` es el primer elemento >= takenAt; el candidato anterior es low - 1.
+  const after = sorted[low];
+  const before = sorted[low - 1];
+  let best: T | undefined = before;
+  if (after && (!before || after.takenAt - takenAt < takenAt - before.takenAt)) best = after;
+  if (!best || Math.abs(best.takenAt - takenAt) > windowMs) return null;
+  return best;
+}

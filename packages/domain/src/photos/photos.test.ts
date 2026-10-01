@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   assignPhotosToBatch,
   clusterPhotos,
+  nearestInTime,
   suggestPlaceByTime,
   type PhotoMeta,
   type PlaceAssignment,
@@ -184,5 +185,29 @@ describe('clusterPhotos', () => {
 
   it('sin fotos no hay grupos', () => {
     expect(clusterPhotos([], 0.1)).toEqual([]);
+  });
+});
+
+describe('nearestInTime', () => {
+  const sorted = [
+    { id: 'a', takenAt: 100 },
+    { id: 'b', takenAt: 200 },
+    { id: 'c', takenAt: 400 },
+  ];
+
+  it('encuentra el elemento más cercano en el tiempo (lista ordenada)', () => {
+    expect(nearestInTime(190, sorted, 1000)?.id).toBe('b');
+    expect(nearestInTime(320, sorted, 1000)?.id).toBe('c');
+    expect(nearestInTime(0, sorted, 1000)?.id).toBe('a');
+    expect(nearestInTime(999, sorted, 1000)?.id).toBe('c');
+  });
+
+  it('a igual distancia gana el anterior', () => {
+    expect(nearestInTime(300, sorted, 1000)?.id).toBe('b');
+  });
+
+  it('nada fuera de la ventana o con la lista vacía', () => {
+    expect(nearestInTime(1000, sorted, 100)).toBeNull();
+    expect(nearestInTime(100, [], 100)).toBeNull();
   });
 });
