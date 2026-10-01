@@ -1,15 +1,17 @@
 import { clusterPhotos } from '@atlas/domain';
 import {
   Button,
+  Icon,
   IconButton,
   MapLegend,
-  ProgressBar,
   TimeSlider,
   Toggle,
   colors,
+  iconSizes,
   radii,
   shadows,
   spacing,
+  touchTarget,
   typography,
 } from '@atlas/design-system';
 import { AtlasMap, type MapLayerId, type RouteLayer } from '@atlas/map';
@@ -19,7 +21,6 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
 import { cityById } from '../../features/map/services/cities';
-import { countryCount } from '../../features/map/services/countries';
 import { regionCountry } from '../../features/map/services/regions';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
 import { useTrips } from '../../features/trips/hooks/useTrips';
@@ -31,7 +32,7 @@ const PLAY_STEP_MS = 1200;
 const endOfYear = (year: number): number => new Date(year + 1, 0, 1).getTime() - 1;
 
 /**
- * M1.1 · Mapa mundi, con capas (M1.2) y viaje en el tiempo (M1.3).
+ * M1.1 · Mapa mundi, con búsqueda (M1.8), capas (M1.2) y viaje en el tiempo (M1.3).
  * Niebla sobre lo no visitado, tus fotos agrupadas y las rutas de tus viajes. Todo en el móvil.
  */
 export default function MapScreen() {
@@ -110,14 +111,16 @@ export default function MapScreen() {
       />
 
       <SafeAreaView edges={['top']} style={styles.top} pointerEvents="box-none">
-        <View style={styles.card}>
-          <ProgressBar
-            label={year === null ? 'Tu mundo' : `Tu mundo en ${year}`}
-            value={state.worldPercent}
-            detail={`${state.totals.countries} de ${countryCount} países`}
-          />
-        </View>
-        <View style={styles.tools}>
+        <View style={styles.searchRow}>
+          <Pressable
+            role="button"
+            aria-label="Buscar país o ciudad"
+            onPress={() => router.push('/search')}
+            style={({ pressed }) => [styles.search, pressed && styles.pressed]}
+          >
+            <Icon name="search" size={iconSizes.nav} color={colors.inkMuted} />
+            <Text style={styles.searchText}>Buscar país o ciudad</Text>
+          </Pressable>
           <View style={styles.toolButton}>
             <IconButton
               icon="layers"
@@ -126,48 +129,74 @@ export default function MapScreen() {
               onPress={() => setLayersOpen(true)}
             />
           </View>
-          <View style={styles.toolButton}>
-            <IconButton
-              icon="calendar"
-              label={year === null ? 'Viaje en el tiempo' : 'Volver a hoy'}
-              outline
-              onPress={() => {
-                setPlaying(false);
-                setYear(year === null ? currentYear : null);
-              }}
-            />
-          </View>
         </View>
+        <Pressable
+          role="link"
+          aria-label={`${state.totals.countries} países, ${state.worldPercent} % del mundo${
+            year === null ? '' : ` en ${year}`
+          }. Abrir pasaporte`}
+          onPress={() => router.push('/passport')}
+          style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
+        >
+          <Text style={styles.chipStrong}>
+            {`${state.totals.countries} ${state.totals.countries === 1 ? 'país' : 'países'}`}
+          </Text>
+          <Text style={styles.chipData}>
+            {`${state.worldPercent} % del mundo${year === null ? '' : ` en ${year}`}`}
+          </Text>
+        </Pressable>
       </SafeAreaView>
 
-      {year !== null ? (
-        <View style={[styles.card, styles.bottom]}>
-          <TimeSlider
-            min={Math.min(firstYear, currentYear)}
-            max={currentYear}
-            value={year}
-            onChange={(y) => {
-              setPlaying(false);
-              setYear(y);
-            }}
-          />
+      {/* M1.3 · Viaje en el tiempo: siempre a mano sobre la barra, como en el lienzo. */}
+      <View style={[styles.card, styles.bottom]}>
+        <TimeSlider
+          min={Math.min(firstYear, currentYear)}
+          max={currentYear}
+          value={year ?? currentYear}
+          onChange={(y) => {
+            setPlaying(false);
+            setYear(y);
+          }}
+        />
+        {year !== null || playing ? (
           <View style={styles.row}>
             <Button
               size="sm"
               icon={playing ? 'close' : 'compass'}
               onPress={() => {
-                if (!playing && year >= currentYear) setYear(firstYear);
+                if (!playing && (year ?? currentYear) >= currentYear) setYear(firstYear);
                 setPlaying(!playing);
               }}
             >
               {playing ? 'Parar' : 'Reproducir'}
             </Button>
-            <Button size="sm" variant="ghost" onPress={() => setYear(null)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onPress={() => {
+                setPlaying(false);
+                setYear(null);
+              }}
+            >
               Volver a hoy
             </Button>
           </View>
-        </View>
-      ) : null}
+        ) : (
+          <View style={styles.row}>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon="compass"
+              onPress={() => {
+                setYear(firstYear);
+                setPlaying(true);
+              }}
+            >
+              Reproducir tus años
+            </Button>
+          </View>
+        )}
+      </View>
 
       <Modal
         visible={layersOpen}
@@ -219,7 +248,36 @@ const styles = StyleSheet.create({
     borderColor: colors.ink,
     borderRadius: radii.sm,
   },
-  tools: { flexDirection: 'row', gap: spacing[2], alignSelf: 'flex-end' },
+  searchRow: { flexDirection: 'row', gap: spacing[2] },
+  search: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    minHeight: 48,
+    paddingHorizontal: spacing[4],
+    backgroundColor: colors.paperRaised,
+    borderWidth: 1,
+    borderColor: colors.ink,
+    borderRadius: radii.sm,
+  },
+  searchText: { ...typography.body, color: colors.inkMuted },
+  pressed: { backgroundColor: colors.paper },
+  chip: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing[2],
+    minHeight: touchTarget,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
+    backgroundColor: colors.paperRaised,
+    borderWidth: 1,
+    borderColor: colors.ink,
+    borderRadius: radii.sm,
+  },
+  chipStrong: { ...typography.bodyStrong, color: colors.ink },
+  chipData: { ...typography.data, color: colors.ink },
   toolButton: { backgroundColor: colors.paperRaised, borderRadius: radii.sm },
   bottom: {
     position: 'absolute',

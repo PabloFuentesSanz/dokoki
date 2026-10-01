@@ -4,6 +4,7 @@ import {
   countryCount,
   countryName,
   countryResolver,
+  searchCountries,
   toCountryCollection,
 } from '../services/countries';
 
@@ -36,5 +37,16 @@ describe('countries', () => {
       toCountryCollection({ type: 'FeatureCollection', features: [{ type: 'Feature' }] }),
     ).toThrow();
     expect(() => toCountryCollection(null)).toThrow();
+  });
+});
+
+describe('searchCountries', () => {
+  it('busca por el principio del nombre, sin tildes ni mayúsculas', () => {
+    expect(searchCountries('japon')).toEqual([{ code: 'JP', name: 'Japón' }]);
+    expect(searchCountries('  ')).toEqual([]);
+  });
+
+  it('si nada empieza así, busca dentro del nombre', () => {
+    expect(searchCountries('landia').map((c) => c.code)).toContain('FI');
   });
 });

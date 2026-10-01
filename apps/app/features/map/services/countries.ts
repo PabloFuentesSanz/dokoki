@@ -66,3 +66,27 @@ const NOT_COUNTRIES = new Set(['Antarctica', 'Seven seas (open ocean)']);
 export const countryCount = countryAreas.features.filter(
   (f) => !NOT_COUNTRIES.has(f.properties.continent),
 ).length;
+
+const normalize = (text: string): string =>
+  text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+const searchableCountries = countryAreas.features
+  .filter((f) => !NOT_COUNTRIES.has(f.properties.continent))
+  .map((f) => ({
+    code: f.properties.id,
+    name: f.properties.name,
+    key: normalize(f.properties.name),
+  }));
+
+/** Países cuyo nombre empieza por el texto (o, si no hay, lo contiene), sin tildes. M1.8. */
+export function searchCountries(query: string, limit = 5): { code: string; name: string }[] {
+  const q = normalize(query);
+  if (q.length === 0) return [];
+  const starts = searchableCountries.filter((c) => c.key.startsWith(q));
+  const pool = starts.length > 0 ? starts : searchableCountries.filter((c) => c.key.includes(q));
+  return pool.slice(0, limit).map(({ code, name }) => ({ code, name }));
+}
