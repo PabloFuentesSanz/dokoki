@@ -1,4 +1,5 @@
 import {
+  Button,
   CountryChip,
   EmptyState,
   StatStrip,
@@ -11,6 +12,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
 import { countryCount, countryName } from '../../features/map/services/countries';
+import { basePeriod } from '../../features/settings/services/bases';
+import { useSettings } from '../../features/settings/store/SettingsProvider';
 
 const fmtDate = (ms: number | null): string =>
   ms === null ? '' : new Date(ms).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
@@ -21,12 +24,26 @@ const fmtDate = (ms: number | null): string =>
  */
 export default function MeScreen() {
   const { state } = useUnlockState();
+  const { bases } = useSettings();
   const countries = Object.values(state.countries).sort(
     (a, b) => (a.firstVisitedAt ?? 0) - (b.firstVisitedAt ?? 0),
   );
 
   return (
     <Screen title="Tú">
+      <View style={styles.list}>
+        <Text role="heading" style={styles.heading}>
+          Tus bases
+        </Text>
+        <Text style={styles.meta}>
+          {bases.length === 0
+            ? 'Aún no has elegido ninguna: sin base no se detectan viajes.'
+            : bases.map((b) => `${b.name} (${basePeriod(b)})`).join(', ')}
+        </Text>
+        <Button variant="secondary" icon="pin" onPress={() => router.push('/bases')}>
+          {bases.length === 0 ? 'Elegir mi base' : 'Cambiar mis bases'}
+        </Button>
+      </View>
       {countries.length === 0 ? (
         <EmptyState
           icon="compass"

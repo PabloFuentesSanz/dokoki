@@ -4,6 +4,8 @@ import { cityName } from '../../map/services/cities';
 import { countryName } from '../../map/services/countries';
 import { regionName } from '../../map/services/regions';
 import { usePhotoLibrary } from '../../photos/store/PhotoLibraryProvider';
+import { useSettings } from '../../settings/store/SettingsProvider';
+import { toHomeBases } from '../../settings/services/bases';
 import { homeBaseFrom, toTripPhotos } from '../services/tripInputs';
 
 /** Un viaje necesita al menos estas fotos: una foto suelta en una excursión no es un viaje. */
@@ -12,7 +14,10 @@ const MIN_TRIP_PHOTOS = 3;
 export interface TripsResult {
   /** Del más reciente al más antiguo. */
   trips: DetectedTrip[];
-  homeCityId: string | null;
+  /** true si aún no has elegido ninguna base: sin base no se pueden detectar viajes. */
+  needsBase: boolean;
+  /** Ciudad sugerida como base: la que tiene más fotos (HU-04). */
+  suggestedCityId: string | null;
 }
 
 /**
@@ -22,17 +27,20 @@ export interface TripsResult {
  */
 export function useTrips(): TripsResult {
   const { photos, assignments } = usePhotoLibrary();
+  const { bases } = useSettings();
   return useMemo(() => {
-    const home = homeBaseFrom(photos, assignments);
-    if (!home) return { trips: [], homeCityId: null };
+    const suggestedCityId = homeBaseFrom(photos, assignments)?.cityId ?? null;
+    if (bases.length === 0) return { trips: [], needsBase: true, suggestedCityId };
     const tripPhotos = toTripPhotos(photos, assignments, {
       city: cityName,
       region: regionName,
       country: countryName,
     });
-    const trips = detectTrips(tripPhotos, home, { minPhotos: MIN_TRIP_PHOTOS }).reverse();
-    return { trips, homeCityId: home.cityId };
-  }, [photos, assignments]);
+    const trips = detectTrips(tripPhotos, toHomeBases(bases), {
+      minPhotos: MIN_TRIP_PHOTOS,
+    }).reverse();
+    return { trips, needsBase: false, suggestedCityId };
+  }, [photos, assignments, bases]);
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;

@@ -37,3 +37,19 @@ export function cityById(id: string): City | undefined {
 export function cityName(id: string): string {
   return byId.get(id)?.name ?? id;
 }
+
+const normalize = (text: string): string =>
+  text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+const searchable = cities
+  .map((city) => ({ city, key: normalize(city.name) }))
+  .sort((a, b) => b.city.population - a.city.population);
+
+/** Ciudades cuyo nombre empieza (o, si no hay, contiene) el texto. Las más pobladas primero. */
+export function searchCities(query: string, limit = 8): City[] {
+  const q = normalize(query);
+  if (q.length === 0) return [];
+  const starts = searchable.filter((s) => s.key.startsWith(q));
+  const pool = starts.length > 0 ? starts : searchable.filter((s) => s.key.includes(q));
+  return pool.slice(0, limit).map((s) => s.city);
+}

@@ -9,10 +9,18 @@ import { tripMeta, useTrips } from '../../features/trips/hooks/useTrips';
  * TODO(M4.1): pestañas Próximos, En curso y Pasados, y filtros por año y país.
  */
 export default function TripsScreen() {
-  const { trips } = useTrips();
+  const { trips, needsBase } = useTrips();
   return (
     <Screen title="Tus viajes">
-      {trips.length === 0 ? (
+      {needsBase ? (
+        <EmptyState
+          icon="pin"
+          title="Elige tu base para ver tus viajes"
+          body="Un viaje es todo lo que haces lejos de casa. Dinos dónde vives (o has vivido) y los detectamos solos."
+          action="Elegir mi base"
+          onAction={() => router.push('/bases')}
+        />
+      ) : trips.length === 0 ? (
         <EmptyState
           icon="trips"
           title="Aún sin viajes"

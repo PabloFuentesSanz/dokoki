@@ -35,3 +35,19 @@ describe('placeResolver', () => {
     expect(() => toCities({})).toThrow();
   });
 });
+
+describe('searchCities', () => {
+  it('encuentra por prefijo sin tildes ni mayúsculas, las más pobladas primero', async () => {
+    const { searchCities } = await import('../services/cities');
+    const results = searchCities('kyo', 5);
+    expect(results[0]?.name).toBe('Kyoto');
+    expect(searchCities('Cádiz', 3).some((c) => c.name === 'Cadiz' && c.country === 'ES')).toBe(
+      true,
+    );
+  });
+
+  it('una búsqueda vacía no devuelve nada', async () => {
+    const { searchCities } = await import('../services/cities');
+    expect(searchCities('  ', 5)).toEqual([]);
+  });
+});

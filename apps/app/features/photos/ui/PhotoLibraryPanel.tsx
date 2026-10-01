@@ -10,6 +10,7 @@ import {
 } from '@atlas/design-system';
 import { router } from 'expo-router';
 import { Linking, StyleSheet, Text, View } from 'react-native';
+import { useSettings } from '../../settings/store/SettingsProvider';
 import { usePhotoLibrary } from '../store/PhotoLibraryProvider';
 
 const seconds = (ms: number): string => `${(ms / 1000).toFixed(1).replace('.', ',')} s`;
@@ -115,7 +116,16 @@ export function PhotoLibraryPanel() {
           </Button>
         ) : (
           <>
-            <Button icon="map" onPress={() => router.navigate('/')}>
+            {bases.length === 0 ? (
+              <Button icon="pin" onPress={() => router.push('/bases')}>
+                Elegir mi base
+              </Button>
+            ) : null}
+            <Button
+              icon="map"
+              variant={bases.length === 0 ? 'secondary' : 'primary'}
+              onPress={() => router.navigate('/')}
+            >
               Ver en el mapa
             </Button>
             <Button variant="secondary" onPress={() => void scan()}>
