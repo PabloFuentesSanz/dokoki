@@ -25,3 +25,4 @@ export function haversineKm(a: LatLng, b: LatLng): number {
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
 }
 export * from './areas';
+export * from './nearest';
