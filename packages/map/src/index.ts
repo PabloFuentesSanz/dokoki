@@ -5,6 +5,7 @@ export {
   initialCamera,
   type OverlayLayer,
   overlayLayers,
+  REGION_ZOOM,
   readAreaPress,
   readClusterId,
   toClusterCollection,

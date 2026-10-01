@@ -62,6 +62,7 @@ export function toClusterCollection(
  */
 type GetExpression = ['get', string];
 type EqualsFilter = ['==', GetExpression, string | boolean];
+type AllFilter = ['all', EqualsFilter, EqualsFilter];
 type LinearInterpolation = ['interpolate', ['linear'], GetExpression, ...number[]];
 type Visibility = 'visible' | 'none';
 
@@ -69,7 +70,9 @@ interface FillOverlay {
   id: string;
   type: 'fill';
   source: string;
-  filter: EqualsFilter;
+  filter: AllFilter;
+  minzoom?: number;
+  maxzoom?: number;
   layout: { visibility: Visibility };
   paint: { 'fill-color': string; 'fill-opacity': number; 'fill-outline-color'?: string };
 }
@@ -105,6 +108,34 @@ const ROUTE_PAINT: Record<RouteKind, { color: string; dash?: number[] }> = {
   unexplored: { color: colors.inkMuted, dash: [0.7, 1.8] },
 };
 
+/** A partir de este zoom se ven las regiones dentro de los países visitados. */
+export const REGION_ZOOM = 4.5;
+
+function fill(
+  id: string,
+  level: 'country' | 'region',
+  unlocked: boolean,
+  visibility: Visibility,
+  zoom: { minzoom?: number; maxzoom?: number } = {},
+): FillOverlay {
+  return {
+    id,
+    type: 'fill',
+    source: ATLAS_SOURCES.fog,
+    filter: ['all', ['==', ['get', 'level'], level], ['==', ['get', 'unlocked'], unlocked]],
+    ...zoom,
+    layout: { visibility },
+    // La niebla no se comunica solo con color: el borde también la distingue.
+    paint: unlocked
+      ? { 'fill-color': colors.landVisited, 'fill-opacity': 0.55 }
+      : {
+          'fill-color': colors.paperSunk,
+          'fill-opacity': 0.92,
+          'fill-outline-color': colors.inkMuted,
+        },
+  };
+}
+
 export function overlayLayers(visible: Partial<Record<MapLayerId, boolean>> = {}): OverlayLayer[] {
   const visibility = (layer: MapLayerId): Visibility =>
     visible[layer] === false ? 'none' : 'visible';
@@ -127,27 +158,12 @@ export function overlayLayers(visible: Partial<Record<MapLayerId, boolean>> = {}
   });
 
   return [
-    {
-      id: 'atlas-unlocked',
-      type: 'fill',
-      source: ATLAS_SOURCES.fog,
-      filter: ['==', ['get', 'unlocked'], true],
-      layout: { visibility: visibility('unlocked') },
-      paint: { 'fill-color': colors.landVisited, 'fill-opacity': 0.55 },
-    },
-    {
-      id: 'atlas-fog',
-      type: 'fill',
-      source: ATLAS_SOURCES.fog,
-      filter: ['==', ['get', 'unlocked'], false],
-      layout: { visibility: visibility('fog') },
-      // La niebla no se comunica solo con color: el borde punteado también la distingue.
-      paint: {
-        'fill-color': colors.paperSunk,
-        'fill-opacity': 0.92,
-        'fill-outline-color': colors.inkMuted,
-      },
-    },
+    // Países: niebla sobre los no visitados a cualquier zoom; los visitados se ven en color
+    // de lejos y, al acercarse, dejan paso a sus regiones.
+    fill('atlas-fog', 'country', false, visibility('fog')),
+    fill('atlas-unlocked', 'country', true, visibility('unlocked'), { maxzoom: REGION_ZOOM }),
+    fill('atlas-region-fog', 'region', false, visibility('fog'), { minzoom: REGION_ZOOM }),
+    fill('atlas-region-unlocked', 'region', true, visibility('unlocked'), { minzoom: REGION_ZOOM }),
     ...routeLayers,
     {
       id: 'atlas-photos',

@@ -4,6 +4,7 @@ import {
   ATLAS_SOURCES,
   initialCamera,
   overlayLayers,
+  REGION_ZOOM,
   readAreaPress,
   readClusterId,
   toClusterCollection,
@@ -76,6 +77,16 @@ describe('overlayLayers', () => {
     expect(routes[0]?.paint).not.toHaveProperty('line-dasharray');
     expect(routes[1]).toMatchObject({ paint: { 'line-color': colors.stampBlue } });
     expect(routes[1]?.paint).toHaveProperty('line-dasharray');
+  });
+
+  it('al acercarse, los países visitados dejan paso a sus regiones', () => {
+    const layers = overlayLayers();
+    expect(layers.find((l) => l.id === 'atlas-unlocked')).toMatchObject({ maxzoom: REGION_ZOOM });
+    expect(layers.find((l) => l.id === 'atlas-region-unlocked')).toMatchObject({
+      minzoom: REGION_ZOOM,
+      filter: ['all', ['==', ['get', 'level'], 'region'], ['==', ['get', 'unlocked'], true]],
+    });
+    expect(layers.find((l) => l.id === 'atlas-region-fog')).toMatchObject({ minzoom: REGION_ZOOM });
   });
 
   it('oculta las capas desactivadas', () => {

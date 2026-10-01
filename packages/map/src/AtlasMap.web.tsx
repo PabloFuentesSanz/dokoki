@@ -74,14 +74,17 @@ export function AtlasMap({
       }
       for (const spec of specsRef.current) map.addLayer(spec);
     });
-    map.on('click', 'atlas-fog', (event) => {
-      const area = readAreaPress(event.features?.[0]?.properties);
-      if (area) handlers.current.onPressArea?.(area);
-    });
-    map.on('click', 'atlas-unlocked', (event) => {
-      const area = readAreaPress(event.features?.[0]?.properties);
-      if (area) handlers.current.onPressArea?.(area);
-    });
+    for (const layer of [
+      'atlas-fog',
+      'atlas-unlocked',
+      'atlas-region-fog',
+      'atlas-region-unlocked',
+    ]) {
+      map.on('click', layer, (event) => {
+        const area = readAreaPress(event.features?.[0]?.properties);
+        if (area) handlers.current.onPressArea?.(area);
+      });
+    }
     map.on('click', 'atlas-photos', (event) => {
       const id = readClusterId(event.features?.[0]?.properties);
       if (id) handlers.current.onPressCluster?.(id);
