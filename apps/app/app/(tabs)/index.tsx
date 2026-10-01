@@ -1,11 +1,13 @@
 import { clusterPhotos } from '@atlas/domain';
 import { colors, MapLegend, ProgressBar, radii, spacing } from '@atlas/design-system';
 import { AtlasMap } from '@atlas/map';
+import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
 import { countryCount } from '../../features/map/services/countries';
+import { regionCountry } from '../../features/map/services/regions';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
 
 /** Celdas de ~5 km: suficiente para ver ciudades y barrios sin miles de puntos. */
@@ -34,6 +36,10 @@ export default function MapScreen() {
         style={styles.fill}
         fog={fog}
         photoClusters={clusters}
+        onPressArea={(area) => {
+          const code = area.level === 'region' ? regionCountry(area.id) : area.id;
+          if (code) router.push({ pathname: '/country/[code]', params: { code } });
+        }}
         accessibilityLabel="Tu mapa del mundo"
       />
       <SafeAreaView edges={['top']} style={styles.overlay} pointerEvents="box-none">

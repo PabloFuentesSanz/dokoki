@@ -53,7 +53,13 @@ export default function MeScreen() {
           <View style={styles.list}>
             {countries.map((entry) => (
               <View key={entry.id} style={styles.row}>
-                <CountryChip code={entry.id} name={countryName(entry.id)} />
+                <CountryChip
+                  code={entry.id}
+                  name={countryName(entry.id)}
+                  onPress={() =>
+                    router.push({ pathname: '/country/[code]', params: { code: entry.id } })
+                  }
+                />
                 <Text
                   style={styles.meta}
                 >{`${fmtDate(entry.firstVisitedAt)}, ${entry.photoCount} fotos`}</Text>

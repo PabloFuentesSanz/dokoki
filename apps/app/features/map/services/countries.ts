@@ -32,6 +32,24 @@ export function countryName(code: string): string {
   return names.get(code) ?? code;
 }
 
+const CONTINENTS: Record<string, string> = {
+  Africa: 'África',
+  Asia: 'Asia',
+  Europe: 'Europa',
+  'North America': 'América del Norte',
+  'South America': 'América del Sur',
+  Oceania: 'Oceanía',
+  Antarctica: 'Antártida',
+};
+const continents = new Map(
+  countryAreas.features.map((f) => [f.properties.id, f.properties.continent]),
+);
+
+export function continentName(code: string): string {
+  const continent = continents.get(code) ?? '';
+  return CONTINENTS[continent] ?? continent;
+}
+
 /** Resuelve solo el país (el resolvedor completo está en `places.ts`). */
 export const countryResolver: PlaceResolver = {
   resolve(point) {

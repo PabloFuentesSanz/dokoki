@@ -21,15 +21,21 @@ export const regionAreas: FeatureCollection<Polygon | MultiPolygon, RegionProper
 
 const byCountry = new Map<string, RegionProperties[]>();
 const names = new Map<string, string>();
+const countryOf = new Map<string, string>();
 for (const feature of regionAreas.features) {
   const list = byCountry.get(feature.properties.country) ?? [];
   list.push(feature.properties);
   byCountry.set(feature.properties.country, list);
   names.set(feature.properties.id, feature.properties.name);
+  countryOf.set(feature.properties.id, feature.properties.country);
 }
 
 export function regionName(id: string): string {
   return names.get(id) ?? id;
+}
+
+export function regionCountry(id: string): string | undefined {
+  return countryOf.get(id);
 }
 
 export function regionsOf(countryCode: string): readonly RegionProperties[] {
