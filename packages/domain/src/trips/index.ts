@@ -187,6 +187,17 @@ export function detectTrips(
   return trips.sort((a, b) => a.startAt - b.startAt);
 }
 
+/**
+ * Crea un viaje bloqueado a partir de unas fotos (un viaje creado a mano, M4.4). Opcionalmente
+ * con nombre propio; si no, se propone como en la detección.
+ */
+export function tripFromPhotos(photos: readonly TripPhoto[], name?: string): DetectedTrip {
+  const sorted = [...photos].sort((a, b) => a.takenAt - b.takenAt);
+  if (!isNonEmpty(sorted)) throw new RangeError('Un viaje necesita al menos una foto.');
+  const trip = buildTrip(sorted, true);
+  return name ? { ...trip, name } : trip;
+}
+
 /** Fusiona dos o más viajes en uno (M3.6, M4.4). El resultado queda bloqueado. */
 export function mergeTrips(trips: readonly DetectedTrip[]): DetectedTrip {
   const ordered = [...trips].sort((a, b) => a.startAt - b.startAt);

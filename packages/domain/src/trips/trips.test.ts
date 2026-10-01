@@ -4,6 +4,7 @@ import {
   isAtHome,
   mergeTrips,
   splitTrip,
+  tripFromPhotos,
   type HomeBase,
   type TripPhoto,
 } from './index';
@@ -261,5 +262,21 @@ describe('splitTrip', () => {
     if (!trip) throw new Error('falta el viaje');
     expect(() => splitTrip(trip, japan, T0)).toThrow(RangeError);
     expect(() => splitTrip(trip, japan, T0 + 30 * DAY)).toThrow(RangeError);
+  });
+});
+
+describe('tripFromPhotos', () => {
+  it('crea un viaje bloqueado con nombre propuesto o propio', () => {
+    const photos = [p('o1', T0 + DAY, 'osaka'), p('k1', T0, 'kioto')];
+    expect(tripFromPhotos(photos)).toMatchObject({
+      photoIds: ['k1', 'o1'],
+      name: 'Kioto y Osaka',
+      locked: true,
+    });
+    expect(tripFromPhotos(photos, 'Japón con Lucía').name).toBe('Japón con Lucía');
+  });
+
+  it('sin fotos no hay viaje', () => {
+    expect(() => tripFromPhotos([])).toThrow(RangeError);
   });
 });
