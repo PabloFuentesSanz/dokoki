@@ -52,13 +52,8 @@ export function Icon({
   color = colors.ink,
   strokeWidth = 1.6,
 }: IconProps) {
-  const a11y = label
-    ? { accessible: true, accessibilityRole: 'image' as const, accessibilityLabel: label }
-    : {
-        accessible: false,
-        accessibilityElementsHidden: true,
-        importantForAccessibility: 'no-hide-descendants' as const,
-      };
+  // Props aria-* y role: React Native y react-native-svg en web las entienden igual.
+  const a11y = label ? { role: 'img' as const, 'aria-label': label } : { 'aria-hidden': true };
   return (
     <Svg
       width={size}

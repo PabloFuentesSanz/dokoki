@@ -64,7 +64,7 @@ export function Button({
     >
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator size="small" color={fg} accessibilityElementsHidden />
+          <ActivityIndicator size="small" color={fg} aria-hidden />
         ) : icon ? (
           <Icon name={icon} size={iconSizes.button} color={fg} />
         ) : null}

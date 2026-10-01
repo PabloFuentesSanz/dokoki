@@ -43,7 +43,7 @@ export function Paper({ tone = 'paper', style, children }: PaperProps) {
         style,
       ]}
     >
-      <View pointerEvents="none" style={styles.grain}>
+      <View style={styles.grain}>
         <Svg width="100%" height="100%" aria-hidden>
           <Defs>
             <Pattern id="atlas-grain" width={TILE} height={TILE} patternUnits="userSpaceOnUse">
@@ -62,5 +62,5 @@ export function Paper({ tone = 'paper', style, children }: PaperProps) {
 
 const styles = StyleSheet.create({
   base: { flex: 1, overflow: 'hidden' },
-  grain: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
+  grain: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, pointerEvents: 'none' },
 });

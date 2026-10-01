@@ -110,7 +110,7 @@ export default function MapScreen() {
         accessibilityLabel="Tu mapa del mundo"
       />
 
-      <SafeAreaView edges={['top']} style={styles.top} pointerEvents="box-none">
+      <SafeAreaView edges={['top']} style={styles.top}>
         <View style={styles.searchRow}>
           <Pressable
             role="button"
@@ -240,7 +240,15 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  top: { position: 'absolute', top: 0, left: 0, right: 0, padding: spacing[4], gap: spacing[3] },
+  top: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    padding: spacing[4],
+    gap: spacing[3],
+    pointerEvents: 'box-none',
+  },
   card: {
     padding: spacing[3],
     backgroundColor: colors.paperRaised,
