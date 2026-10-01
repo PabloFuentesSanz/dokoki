@@ -19,6 +19,7 @@ const count = (n: number): string => n.toLocaleString('es-ES');
 /** M3.8 · Estado de importación, versión de prueba técnica: lee el carrete y mide cuánto tarda. */
 export function PhotoLibraryPanel() {
   const {
+    unlocated,
     status,
     access,
     photos,
@@ -105,6 +106,11 @@ export function PhotoLibraryPanel() {
               : '0'
           } fotos/s`}
         </Text>
+      ) : null}
+      {unlocated.length > 0 && status !== 'scanning' ? (
+        <Button variant="secondary" icon="pin" onPress={() => router.push('/unlocated')}>
+          {`Colocar ${count(unlocated.length)} fotos sin ubicación`}
+        </Button>
       ) : null}
       {error ? (
         <Text style={[styles.data, styles.error]}>{`No se pudo leer el carrete: ${error}`}</Text>

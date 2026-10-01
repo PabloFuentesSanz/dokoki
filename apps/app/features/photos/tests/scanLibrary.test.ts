@@ -73,6 +73,15 @@ describe('scanLibrary', () => {
     expect(source.listPage).toHaveBeenCalledWith(0, 500, 1_700_000_000_000 - 10);
   });
 
+  it('las fotos sin GPS (o con 0,0) salen aparte, con su fecha, para la bandeja sin ubicación', async () => {
+    const unlocated: string[] = [];
+    await scanLibrary(fakeSource(4), {
+      pageSize: 10,
+      onProgress: (_p, _located, page) => unlocated.push(...page.map((u) => u.id)),
+    });
+    expect(unlocated).toEqual(['p1', 'p3']);
+  });
+
   it('un carrete vacío termina sin fotos', async () => {
     const result = await scanLibrary(fakeSource(0));
     expect(result).toMatchObject({

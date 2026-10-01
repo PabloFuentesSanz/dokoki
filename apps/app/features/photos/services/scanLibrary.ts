@@ -5,7 +5,7 @@
  * La fuente es inyectable para poder probar la lógica sin el módulo nativo
  * (ver `expoPhotoSource.ts` para la real).
  */
-import type { LatLng } from '@atlas/domain';
+import { isValidCoordinate, type LatLng } from '@atlas/domain';
 
 export interface PhotoSource {
   /** Una página de fotos, de la más reciente a la más antigua; con `since`, solo las posteriores. */
@@ -21,6 +21,12 @@ export interface LocatedPhoto {
   id: string;
   takenAt: number;
   location: LatLng;
+}
+
+/** Foto sin GPS (o con GPS vacío): va a la bandeja "Sin ubicación" (M3.5). */
+export interface UnlocatedPhoto {
+  id: string;
+  takenAt: number;
 }
 
 export interface ScanProgress {
@@ -44,7 +50,11 @@ export interface ScanOptions {
   pageSize?: number;
   /** Peticiones de ubicación simultáneas. */
   concurrency?: number;
-  onProgress?: (progress: ScanProgress, page: LocatedPhoto[]) => void;
+  onProgress?: (
+    progress: ScanProgress,
+    located: LocatedPhoto[],
+    unlocated: UnlocatedPhoto[],
+  ) => void;
   signal?: AbortSignal;
   /** Solo fotos creadas después de este instante (epoch ms). */
   since?: number;
@@ -103,6 +113,7 @@ export async function scanLibrary(
     locationMs += Date.now() - locationStart;
 
     const pageLocated: LocatedPhoto[] = [];
+    const pageUnlocated: UnlocatedPhoto[] = [];
     page.forEach((photo, i) => {
       if (
         photo.creationTime !== null &&
@@ -111,17 +122,15 @@ export async function scanLibrary(
         newestTakenAt = photo.creationTime;
       }
       const loc = locations[i];
-      if (loc) {
-        pageLocated.push({
-          id: photo.id,
-          takenAt: photo.creationTime ?? 0,
-          location: { lat: loc.latitude, lng: loc.longitude },
-        });
-      }
+      const takenAt = photo.creationTime ?? 0;
+      const location = loc ? { lat: loc.latitude, lng: loc.longitude } : null;
+      if (location && isValidCoordinate(location))
+        pageLocated.push({ id: photo.id, takenAt, location });
+      else pageUnlocated.push({ id: photo.id, takenAt });
     });
     located.push(...pageLocated);
     scanned += page.length;
-    onProgress?.(progress(), pageLocated);
+    onProgress?.(progress(), pageLocated, pageUnlocated);
 
     if (page.length < pageSize) break;
   }

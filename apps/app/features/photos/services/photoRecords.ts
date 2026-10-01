@@ -1,11 +1,16 @@
 import type { PlaceAssignment } from '@atlas/domain';
-import type { LocatedPhoto } from './scanLibrary';
+import type { LocatedPhoto, UnlocatedPhoto } from './scanLibrary';
 
 export interface StoredPhoto extends LocatedPhoto {
   countryCode: string | null;
   regionId: string | null;
   cityId: string | null;
+  /** Ubicación puesta a mano (M3.5): una relectura del carrete nunca la pisa. */
+  manual?: boolean;
 }
+
+/** Versión del esquema de lectura: 2 = también se guardan las fotos sin ubicación. */
+export const SCAN_SCHEMA = 2;
 
 export interface PhotoStoreMeta {
   /** Foto más reciente ya leída (con o sin GPS): la próxima lectura empieza aquí. */
@@ -14,12 +19,19 @@ export interface PhotoStoreMeta {
   scannedCount: number;
   /** Versión de los datos geográficos con los que se asignaron los lugares. */
   placesVersion: string | null;
+  /** Versión del esquema de lectura (`SCAN_SCHEMA`); si es menor, hay que releer todo. */
+  schema?: number;
 }
 
 export interface PhotoStore {
-  load(): Promise<{ photos: StoredPhoto[]; meta: PhotoStoreMeta }>;
+  load(): Promise<{ photos: StoredPhoto[]; unlocated: UnlocatedPhoto[]; meta: PhotoStoreMeta }>;
   save(photos: readonly StoredPhoto[]): Promise<void>;
+  /** Guarda fotos sin ubicación (ignora las que ya tienen ubicación puesta a mano). */
+  saveUnlocated(photos: readonly UnlocatedPhoto[]): Promise<void>;
+  /** Pasa fotos de la bandeja sin ubicación a fotos con ubicación manual. */
+  assignManual(photos: readonly StoredPhoto[]): Promise<void>;
   saveMeta(meta: PhotoStoreMeta): Promise<void>;
+  /** Borra lo leído del carrete para releerlo, conservando lo puesto a mano. */
   clear(): Promise<void>;
 }
 
@@ -52,7 +64,7 @@ export function toAssignments(photos: readonly StoredPhoto[]): PlaceAssignment[]
       regionId: p.regionId,
       cityId: p.cityId,
       placeId: null,
-      source: 'gps',
+      source: p.manual ? 'manual' : 'gps',
     });
   }
   return out;

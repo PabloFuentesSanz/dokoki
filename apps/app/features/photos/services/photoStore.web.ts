@@ -7,9 +7,11 @@ const EMPTY: PhotoStoreMeta = { newestTakenAt: null, scannedCount: 0, placesVers
 
 export const sqlitePhotoStore: PhotoStore = {
   async load() {
-    return { photos: [], meta: EMPTY };
+    return { photos: [], unlocated: [], meta: EMPTY };
   },
   async save() {},
+  async saveUnlocated() {},
+  async assignManual() {},
   async saveMeta() {},
   async clear() {},
 };
