@@ -49,7 +49,13 @@ export default function DeleteScreen() {
       </Text>
       <TextField label={`Escribe "${WORD}" para confirmar`} value={typed} onChangeText={setTyped} />
       <View style={styles.actions}>
-        <Button block variant="danger" disabled={!ready} loading={busy} onPress={() => void erase()}>
+        <Button
+          block
+          variant="danger"
+          disabled={!ready}
+          loading={busy}
+          onPress={() => void erase()}
+        >
           Borrar todo
         </Button>
         <Button block variant="secondary" onPress={() => router.replace('/settings/data')}>
