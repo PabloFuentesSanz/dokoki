@@ -1,5 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
+import { easeOut, useAnimatedValue, useReducedMotion } from '../../internal/motion';
 import { colors, typography } from '../../tokens';
+
+const FILL_MS = 700;
 
 export interface ProgressBarProps {
   label: string;
@@ -12,6 +16,21 @@ export interface ProgressBarProps {
 /** Progreso de desbloqueo: pista discontinua que se rellena de rojo. */
 export function ProgressBar({ label, value, detail }: ProgressBarProps) {
   const pct = Math.round(Math.max(0, Math.min(100, value)));
+  const reduced = useReducedMotion();
+  // La tinta avanza hasta el valor: al abrir la pantalla y cada vez que cambia.
+  const fill = useAnimatedValue(0);
+  useEffect(() => {
+    const animation = Animated.timing(fill, {
+      toValue: pct,
+      duration: reduced ? 0 : FILL_MS,
+      easing: easeOut,
+      // Anima el ancho: no admite el driver nativo.
+      useNativeDriver: false,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [fill, pct, reduced]);
+  const width = fill.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
   return (
     <View style={styles.wrap}>
       <View style={styles.head}>
@@ -26,7 +45,7 @@ export function ProgressBar({ label, value, detail }: ProgressBarProps) {
         aria-valuenow={pct}
         style={styles.track}
       >
-        <View style={[styles.fill, { width: `${pct}%` }]} />
+        <Animated.View style={[styles.fill, { width }]} />
       </View>
       {detail ? <Text style={styles.detail}>{detail}</Text> : null}
     </View>

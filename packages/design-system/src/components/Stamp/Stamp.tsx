@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { useEffect, type ReactNode } from 'react';
+import { Animated, Easing, View } from 'react-native';
+import { easeOut, nativeDriver, useAnimatedValue, useReducedMotion } from '../../internal/motion';
 import Svg, { Circle, Polygon, Rect, Text as SvgText } from 'react-native-svg';
 import { colors, fontFaces, opacity, tilts } from '../../tokens';
 
@@ -18,6 +19,10 @@ export interface StampProps {
   size?: number;
   /** Sin inclinación, para las rejillas del pasaporte. */
   straight?: boolean;
+  /** Entra estampándose (cae desde arriba y golpea el papel). Para desbloqueos, no en listas. */
+  stampIn?: boolean;
+  /** Retraso del estampado en ms. */
+  delay?: number;
 }
 
 const TONES: Record<StampTone, string> = {
@@ -75,7 +80,39 @@ export function Stamp({
   tone = 'red',
   size = 104,
   straight = false,
+  stampIn = false,
+  delay = 0,
 }: StampProps) {
+  const reduced = useReducedMotion();
+  const hit = useAnimatedValue(stampIn ? 0 : 1);
+  useEffect(() => {
+    if (!stampIn) return undefined;
+    // Cae rápido (acelerando) hasta pasarse un poco y rebota a su tamaño: un golpe de tinta.
+    const animation = Animated.sequence([
+      Animated.delay(delay),
+      Animated.timing(hit, {
+        toValue: 1.04,
+        duration: 260,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: nativeDriver,
+      }),
+      Animated.timing(hit, {
+        toValue: 1,
+        duration: 140,
+        easing: easeOut,
+        useNativeDriver: nativeDriver,
+      }),
+    ]);
+    animation.start();
+    return () => animation.stop();
+  }, [stampIn, delay, hit]);
+  const scale =
+    reduced || !stampIn
+      ? 1
+      : hit.interpolate({ inputRange: [0, 1, 1.04], outputRange: [1.9, 1, 0.96] });
+  const ink = stampIn
+    ? hit.interpolate({ inputRange: [0, 0.6, 1, 1.04], outputRange: [0, 0.4, 1, 1] })
+    : 1;
   const c = TONES[tone];
   const title = name.toUpperCase();
   const alt = `${kind === 'achievement' ? 'Logro' : 'Sello de'} ${name}${date ? `, ${date}` : ''}`;
@@ -140,9 +177,11 @@ export function Stamp({
         transform: straight ? [] : [{ rotate: tilts.stamp }],
       }}
     >
-      <Svg width={size} height={size} viewBox="0 0 100 100" aria-hidden>
-        {art}
-      </Svg>
+      <Animated.View style={{ opacity: ink, transform: [{ scale }] }}>
+        <Svg width={size} height={size} viewBox="0 0 100 100" aria-hidden>
+          {art}
+        </Svg>
+      </Animated.View>
     </View>
   );
 }

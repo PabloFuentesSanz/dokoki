@@ -32,3 +32,5 @@ export const PassportGrid: Story = {
     </View>
   ),
 };
+/** Desbloqueo: el sello cae y golpea el papel (recarga la story para verlo). */
+export const StampIn: Story = { args: { label: 'Japón', date: '12.04.2024', stampIn: true } };

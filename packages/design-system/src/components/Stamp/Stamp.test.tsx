@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { colors } from '../../tokens';
 import { Stamp, serratedPoints } from './Stamp';
 
@@ -30,5 +30,17 @@ describe('Stamp', () => {
     expect(screen.getByRole('img')).toHaveStyle({ transform: 'rotate(-12deg)' });
     rerender(<Stamp label="Perú" tone="blue" straight />);
     expect(screen.getByRole('img').style.transform).toBe('');
+  });
+
+  it('se puede estampar al aparecer y acaba entero y legible', async () => {
+    vi.useFakeTimers();
+    render(<Stamp label="Japón" date="10.04.2024" stampIn delay={100} />);
+    expect(screen.getByRole('img', { name: 'Sello de Japón, 10.04.2024' })).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    const art = screen.getByRole('img').firstElementChild;
+    expect(art).toHaveStyle({ opacity: '1' });
+    vi.useRealTimers();
   });
 });

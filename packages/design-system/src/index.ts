@@ -2,6 +2,7 @@
 export * from './tokens';
 export { formatCoordinate, formatMoney } from './internal/format';
 export { focusRingStyle, useFocusRing } from './internal/useFocusRing';
+export { easeOut, nativeDriver, useAnimatedValue, useReducedMotion } from './internal/motion';
 
 export * from './components/AmountInput/AmountInput';
 export * from './components/Avatar/Avatar';
@@ -23,6 +24,7 @@ export * from './components/Paper/Paper';
 export * from './components/PlaceCard/PlaceCard';
 export * from './components/Polaroid/Polaroid';
 export * from './components/ProgressBar/ProgressBar';
+export * from './components/Reveal/Reveal';
 export * from './components/RouteLine/RouteLine';
 export * from './components/RouteMarker/RouteMarker';
 export * from './components/SegmentedTabs/SegmentedTabs';
