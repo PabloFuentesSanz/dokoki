@@ -56,7 +56,7 @@ export default function CountryScreen() {
       {entry ? (
         <>
           <View style={styles.stamp}>
-            <Stamp label={name} date={stampDate(entry.firstVisitedAt)} />
+            <Stamp label={name} date={stampDate(entry.firstVisitedAt)} stampIn delay={200} />
           </View>
           <Button
             variant="secondary"

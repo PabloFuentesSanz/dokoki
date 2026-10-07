@@ -1,4 +1,4 @@
-import { EmptyState, IconButton, spacing } from '@atlas/design-system';
+import { EmptyState, IconButton, Reveal, spacing } from '@atlas/design-system';
 import type { DetectedTrip } from '@atlas/domain';
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
@@ -49,19 +49,20 @@ export default function TripsScreen() {
       ) : (
         <View style={styles.list}>
           {trips.map((trip, i) => (
-            <TripCard
-              key={trip.id}
-              n={trips.length - i}
-              title={trip.name}
-              meta={trip.locked ? tripMeta(trip) : `${tripMeta(trip)}, por revisar`}
-              coverId={coverOf(trip)}
-              stamp={
-                i === 0 && latestCity
-                  ? { label: latestCity, date: stampDate(trip.endAt) }
-                  : undefined
-              }
-              onPress={() => router.push({ pathname: '/trip/[id]', params: { id: trip.id } })}
-            />
+            <Reveal key={trip.id} delay={Math.min(i, 5) * 70}>
+              <TripCard
+                n={trips.length - i}
+                title={trip.name}
+                meta={trip.locked ? tripMeta(trip) : `${tripMeta(trip)}, por revisar`}
+                coverId={coverOf(trip)}
+                stamp={
+                  i === 0 && latestCity
+                    ? { label: latestCity, date: stampDate(trip.endAt) }
+                    : undefined
+                }
+                onPress={() => router.push({ pathname: '/trip/[id]', params: { id: trip.id } })}
+              />
+            </Reveal>
           ))}
         </View>
       )}
