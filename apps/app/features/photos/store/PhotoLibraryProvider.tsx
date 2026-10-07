@@ -16,6 +16,8 @@ import {
 } from 'react';
 import { Platform } from 'react-native';
 import { PLACES_VERSION, placeResolver } from '../../map/services/places';
+import { readSetting, writeSetting } from '../../settings/services/settingsStore';
+import { parseHidden, withoutHidden } from '../services/hiddenPhotos';
 import {
   expoPhotoSource,
   hasPhotoAccess,
@@ -71,6 +73,12 @@ interface PhotoLibraryContextValue extends PhotoLibraryState {
   assignLocations: (
     items: readonly { ids: readonly string[]; location: LatLng }[],
   ) => Promise<void>;
+  /** Fotos ocultas de Atlas (M3.7). Ya están fuera de `photos`, `assignments` y `unlocated`. */
+  hidden: ReadonlySet<string>;
+  hidePhotos: (ids: readonly string[]) => Promise<void>;
+  unhidePhotos: (ids: readonly string[]) => Promise<void>;
+  /** Borra del móvil todo lo leído del carrete (las fotos del carrete no se tocan). */
+  forget: () => Promise<void>;
 }
 
 const INITIAL: PhotoLibraryState = {
@@ -113,6 +121,33 @@ export function PhotoLibraryProvider({ children }: { children: ReactNode }) {
   });
   /** Ids con ubicación puesta a mano: una relectura nunca los devuelve a la bandeja. */
   const manualIds = useRef(new Set<string>());
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    void readSetting('hiddenPhotos').then((value) => {
+      if (!cancelled) setHidden(parseHidden(value));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const saveHidden = useCallback(async (next: ReadonlySet<string>) => {
+    setHidden(next);
+    await writeSetting('hiddenPhotos', [...next]);
+  }, []);
+  const hidePhotos = useCallback(
+    (ids: readonly string[]) => saveHidden(new Set([...hidden, ...ids])),
+    [hidden, saveHidden],
+  );
+  const unhidePhotos = useCallback(
+    (ids: readonly string[]) => {
+      const drop = new Set(ids);
+      return saveHidden(new Set([...hidden].filter((id) => !drop.has(id))));
+    },
+    [hidden, saveHidden],
+  );
 
   const runScan = useCallback(async (access: PhotoAccess, full: boolean) => {
     controller.current?.abort();
@@ -297,9 +332,50 @@ export function PhotoLibraryProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const forget = useCallback(async () => {
+    controller.current?.abort();
+    await sqlitePhotoStore.clear({ manual: true });
+    manualIds.current = new Set();
+    meta.current = { newestTakenAt: null, scannedCount: 0, placesVersion: PLACES_VERSION };
+    await saveHidden(new Set());
+    setState((s) => ({ ...INITIAL, status: s.status === 'unsupported' ? 'unsupported' : 'idle' }));
+  }, [saveHidden]);
+
+  // Lo oculto no existe para el resto de la app: mapa, viajes, galerías y tarjetas.
+  const visible = useMemo(
+    () => ({
+      photos: withoutHidden(state.photos, hidden, (p) => p.id),
+      assignments: withoutHidden(state.assignments, hidden, (a) => a.photoId),
+      unlocated: withoutHidden(state.unlocated, hidden, (u) => u.id),
+    }),
+    [state.photos, state.assignments, state.unlocated, hidden],
+  );
+
   const value = useMemo(
-    () => ({ ...state, scan, cancel, pickMore, assignLocations }),
-    [state, scan, cancel, pickMore, assignLocations],
+    () => ({
+      ...state,
+      ...visible,
+      scan,
+      cancel,
+      pickMore,
+      assignLocations,
+      hidden,
+      hidePhotos,
+      unhidePhotos,
+      forget,
+    }),
+    [
+      state,
+      visible,
+      scan,
+      cancel,
+      pickMore,
+      assignLocations,
+      hidden,
+      hidePhotos,
+      unhidePhotos,
+      forget,
+    ],
   );
   return <PhotoLibraryContext.Provider value={value}>{children}</PhotoLibraryContext.Provider>;
 }

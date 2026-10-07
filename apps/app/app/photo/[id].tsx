@@ -1,11 +1,16 @@
 import {
   Breadcrumbs,
   Button,
+  Icon,
   IconButton,
   Paper,
   Tag,
   colors,
+  iconSizes,
+  radii,
+  shadows,
   spacing,
+  touchTarget,
   typography,
 } from '@atlas/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -14,6 +19,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -29,6 +35,7 @@ import { useGallery } from '../../features/photos/hooks/useGallery';
 import { thumbnailUri } from '../../features/photos/services/thumbnails';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
 import { photoLabel } from '../../features/photos/ui/photoLabel';
+import { useTrips } from '../../features/trips/hooks/useTrips';
 
 const when = (ms: number): string =>
   new Date(ms).toLocaleString('es-ES', {
@@ -48,7 +55,9 @@ const when = (ms: number): string =>
 export default function PhotoScreen() {
   const { id = '', scope = 'all' } = useLocalSearchParams<{ id: string; scope: string }>();
   const { photos } = useGallery(scope);
-  const { assignLocations } = usePhotoLibrary();
+  const { assignLocations, hidePhotos } = usePhotoLibrary();
+  const { trips } = useTrips();
+  const [confirmHide, setConfirmHide] = useState(false);
   const { width, height } = useWindowDimensions();
   const [index, setIndex] = useState(() =>
     Math.max(
@@ -57,7 +66,9 @@ export default function PhotoScreen() {
     ),
   );
   const [fixing, setFixing] = useState(false);
-  const current = photos[index];
+  // Al ocultar la última foto de la lista, el índice se queda dentro.
+  const current = photos[Math.min(index, photos.length - 1)];
+  const trip = current ? trips.find((t) => t.photoIds.includes(current.photoId)) : undefined;
   const imageHeight = Math.round(height * 0.58);
 
   const crumbs = current
@@ -112,6 +123,17 @@ export default function PhotoScreen() {
               {crumbs.at(-1) ?? 'Sin lugar'}
             </Text>
             <Text style={styles.data}>{when(current.takenAt)}</Text>
+            {trip ? (
+              <Pressable
+                role="link"
+                aria-label={`Del viaje ${trip.name}`}
+                onPress={() => router.push({ pathname: '/trip/[id]', params: { id: trip.id } })}
+                style={styles.tripLink}
+              >
+                <Icon name="trips" size={iconSizes.button} color={colors.ink} />
+                <Text style={styles.tripText}>{trip.name}</Text>
+              </Pressable>
+            ) : null}
             {current.source === 'manual' ? <Tag tone="settled">Ubicación puesta a mano</Tag> : null}
             <View style={styles.actions}>
               <Button variant="secondary" icon="pin" onPress={() => setFixing(true)}>
@@ -130,10 +152,51 @@ export default function PhotoScreen() {
                   {`Ver ${countryName(current.countryCode)}`}
                 </Button>
               ) : null}
+              <Button variant="ghost" icon="eyeOff" onPress={() => setConfirmHide(true)}>
+                Ocultar de Atlas
+              </Button>
+              <Text style={styles.hint}>Ocultar no borra la foto de tu carrete.</Text>
             </View>
           </ScrollView>
         ) : null}
       </SafeAreaView>
+
+      {/* M3.7b · Confirmar ocultar */}
+      <Modal
+        visible={confirmHide}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setConfirmHide(false)}
+      >
+        <Pressable
+          style={styles.scrim}
+          onPress={() => setConfirmHide(false)}
+          aria-label="Cancelar"
+        />
+        <SafeAreaView edges={['bottom']} style={styles.confirm} role="dialog">
+          <Text role="heading" style={styles.title}>
+            ¿Ocultar esta foto?
+          </Text>
+          <Text style={styles.body}>
+            Deja de salir en tu mapa, en tus viajes y al compartir. No se borra de tu carrete. Si es
+            la única de un lugar, ese lugar vuelve a la niebla. La recuperas en Ajustes, Fotos y
+            almacenamiento.
+          </Text>
+          <Button
+            block
+            onPress={() => {
+              if (current) void hidePhotos([current.photoId]);
+              setConfirmHide(false);
+              if (photos.length <= 1) router.back();
+            }}
+          >
+            Ocultar foto
+          </Button>
+          <Button block variant="ghost" onPress={() => setConfirmHide(false)}>
+            Cancelar
+          </Button>
+        </SafeAreaView>
+      </Modal>
 
       <Modal visible={fixing} animationType="slide" onRequestClose={() => setFixing(false)}>
         <Paper>
@@ -182,4 +245,22 @@ const styles = StyleSheet.create({
   body: { ...typography.bodyS, color: colors.inkMuted },
   actions: { gap: spacing[2], marginTop: spacing[3] },
   sheet: { padding: spacing[4], gap: spacing[4] },
+  hint: { ...typography.dataS, color: colors.inkMuted },
+  tripLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    minHeight: touchTarget,
+    alignSelf: 'flex-start',
+  },
+  tripText: { ...typography.bodyStrong, color: colors.ink, textDecorationLine: 'underline' },
+  scrim: { flex: 1, backgroundColor: colors.ink, opacity: 0.3 },
+  confirm: {
+    gap: spacing[3],
+    padding: spacing[5],
+    backgroundColor: colors.paperRaised,
+    borderTopLeftRadius: radii.sm,
+    borderTopRightRadius: radii.sm,
+    boxShadow: shadows.sheet,
+  },
 });

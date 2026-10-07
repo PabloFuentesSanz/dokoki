@@ -32,7 +32,8 @@ export interface PhotoStore {
   assignManual(photos: readonly StoredPhoto[]): Promise<void>;
   saveMeta(meta: PhotoStoreMeta): Promise<void>;
   /** Borra lo leído del carrete para releerlo, conservando lo puesto a mano. */
-  clear(): Promise<void>;
+  /** Vacía lo leído del carrete. Lo puesto a mano se conserva salvo con `manual: true`. */
+  clear(options?: { manual?: boolean }): Promise<void>;
 }
 
 /** Une cada foto con su lugar asignado (o null si cae en el mar o fuera de los datos). */

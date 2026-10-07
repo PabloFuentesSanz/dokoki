@@ -141,10 +141,10 @@ export const sqlitePhotoStore: PhotoStore = {
       JSON.stringify(meta),
     ]);
   },
-  async clear() {
+  async clear({ manual = false } = {}) {
     const database = await db();
     await database.execAsync(
-      'DELETE FROM photos WHERE manual = 0; DELETE FROM unlocated; DELETE FROM meta;',
+      `DELETE FROM photos${manual ? '' : ' WHERE manual = 0'}; DELETE FROM unlocated; DELETE FROM meta;`,
     );
   },
 };

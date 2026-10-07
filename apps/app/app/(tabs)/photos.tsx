@@ -1,5 +1,6 @@
 import {
   IconButton,
+  Reveal,
   SegmentedTabs,
   Tag,
   colors,
@@ -90,13 +91,15 @@ export default function PhotosScreen() {
           ListHeaderComponent={header}
           columnWrapperStyle={styles.columns}
           contentContainerStyle={[styles.folders, { paddingHorizontal: gutter }]}
-          renderItem={({ item }) => (
-            <PlaceFolderCard
-              folder={item}
-              onPress={() =>
-                router.push({ pathname: '/gallery', params: { scope: `country:${item.code}` } })
-              }
-            />
+          renderItem={({ item, index }) => (
+            <Reveal delay={Math.min(index, 7) * 50} style={styles.folder}>
+              <PlaceFolderCard
+                folder={item}
+                onPress={() =>
+                  router.push({ pathname: '/gallery', params: { scope: `country:${item.code}` } })
+                }
+              />
+            </Reveal>
           )}
         />
       )}
@@ -108,6 +111,7 @@ const styles = StyleSheet.create({
   header: { gap: spacing[4], paddingBottom: spacing[4] },
   folders: { gap: spacing[5], paddingBottom: spacing[6] },
   columns: { gap: spacing[3] },
+  folder: { flex: 1 },
   unlocated: {
     flexDirection: 'row',
     alignItems: 'center',

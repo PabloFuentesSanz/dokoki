@@ -1,5 +1,19 @@
-import { colors, focusRingStyle, useFocusRing } from '@atlas/design-system';
-import { Image, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  colors,
+  focusRingStyle,
+  motion,
+  nativeDriver,
+  useAnimatedValue,
+  useFocusRing,
+} from '@atlas/design-system';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { thumbnailUri } from '../services/thumbnails';
 
 interface PhotoThumbProps {
@@ -16,12 +30,21 @@ interface PhotoThumbProps {
  */
 export function PhotoThumb({ id, label, style, onPress }: PhotoThumbProps) {
   const { focused, focusProps } = useFocusRing();
+  // La miniatura se revela al cargar, sobre el papel hundido: nunca un parpadeo blanco.
+  const shown = useAnimatedValue(0);
   const image = (
-    <Image
+    <Animated.Image
       source={{ uri: thumbnailUri(id) }}
       resizeMode="cover"
       resizeMethod="resize"
-      style={styles.image}
+      onLoad={() =>
+        Animated.timing(shown, {
+          toValue: 1,
+          duration: motion.base,
+          useNativeDriver: nativeDriver,
+        }).start()
+      }
+      style={[styles.image, { opacity: shown }]}
     />
   );
   // Sin acción es decoración (mosaicos): ni rol ni foco.
