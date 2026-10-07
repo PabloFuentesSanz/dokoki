@@ -1,7 +1,10 @@
 import { BottomNav, breakpoints, colors, SideNav, type NavTab } from '@atlas/design-system';
+import { Redirect } from 'expo-router';
 import { Tabs, type BottomTabBarProps } from 'expo-router/js-tabs';
 import { useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
+import { useSettings } from '../../features/settings/store/SettingsProvider';
 
 /** Ruta de cada sección (archivo en app/(tabs)). */
 const ROUTE_BY_TAB: Record<NavTab, string> = {
@@ -36,6 +39,12 @@ function NavBar({ state, navigation, wide }: BottomTabBarProps & { wide: boolean
 export default function TabsLayout() {
   const { width } = useWindowDimensions();
   const wide = width >= breakpoints.sideNav;
+  const settings = useSettings();
+  const { status, scannedTotal } = usePhotoLibrary();
+  // Primera vez (ni bienvenida ni fotos leídas): a la bienvenida (M0).
+  if (settings.loaded && !settings.onboarded && status !== 'loading' && scannedTotal === 0) {
+    return <Redirect href="/welcome" />;
+  }
   return (
     <Tabs
       tabBar={(props) => <NavBar {...props} wide={wide} />}
