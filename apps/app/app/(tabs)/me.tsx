@@ -2,6 +2,8 @@ import {
   Button,
   CountryChip,
   EmptyState,
+  IconButton,
+  Reveal,
   StatStrip,
   colors,
   spacing,
@@ -20,7 +22,6 @@ const fmtDate = (ms: number | null): string =>
 
 /**
  * M2.1 · Tu progreso (versión inicial) dentro de Tú.
- * TODO(M10.0): ajustes, privacidad y datos. TODO(M2.2): pasaporte de sellos.
  */
 export default function MeScreen() {
   const { state } = useUnlockState();
@@ -30,7 +31,12 @@ export default function MeScreen() {
   );
 
   return (
-    <Screen title="Tú">
+    <Screen
+      title="Tú"
+      actions={
+        <IconButton icon="settings" label="Ajustes" onPress={() => router.push('/settings')} />
+      }
+    >
       <View style={styles.list}>
         <Text role="heading" style={styles.heading}>
           Tus bases
@@ -80,8 +86,8 @@ export default function MeScreen() {
             Tus países
           </Text>
           <View style={styles.list}>
-            {countries.map((entry) => (
-              <View key={entry.id} style={styles.row}>
+            {countries.map((entry, i) => (
+              <Reveal key={entry.id} delay={Math.min(i, 12) * 40} style={styles.row}>
                 <CountryChip
                   code={entry.id}
                   name={countryName(entry.id)}
@@ -92,7 +98,7 @@ export default function MeScreen() {
                 <Text
                   style={styles.meta}
                 >{`${fmtDate(entry.firstVisitedAt)}, ${entry.photoCount} fotos`}</Text>
-              </View>
+              </Reveal>
             ))}
           </View>
         </>
