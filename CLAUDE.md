@@ -59,7 +59,7 @@ Detalle y costes en `docs/stack.md`.
 
 ```
 apps/app/                   Expo: rutas en app/, lógica en features/<feature>/{ui,hooks,services,store,tests}
-packages/design-system/     tokens (tokens.json → index.ts generado) + 33 componentes + Storybook
+packages/design-system/     tokens (tokens.json → index.ts generado) + 34 componentes + Storybook
 packages/domain/            lógica pura: photos, trips, fog, expenses (sin UI, sin red, sin Supabase)
 packages/map/               AtlasMap (.native.tsx / .web.tsx) + capas compartidas (overlays.ts)
 docs/                       spec.md, stack.md, design-system.md, screens/
@@ -116,8 +116,11 @@ cd apps/app && npm run web  # la app en el navegador
 
 ## Orden de implementación del MVP
 
-1. **design-system**: tokens y 31 componentes del artefacto con tests y stories, más `Paper` y
-   `SegmentedTabs` (hecho; estos dos faltan en el artefacto).
+1. **design-system**: tokens y 31 componentes del artefacto con tests y stories, más `Paper`,
+   `SegmentedTabs`, `Reveal` y los iconos `settings`/`eyeOff` (hecho; faltan en el artefacto).
+   Movimiento con `Animated` del núcleo (sin módulos nativos nuevos) y siempre respetando
+   "reducir movimiento" (`useReducedMotion`): aparición escalonada, sello que se estampa,
+   barras que se rellenan, miniaturas que se funden al cargar.
 2. **Lectura del carrete** (HU-05, HU-07): por páginas, con GPS en el móvil, guardada en
    expo-sqlite y solo fotos nuevas al abrir (hecho, `features/photos`).
 3. **domain/photos + datos geográficos** (HU-06): país (Natural Earth), región (admin-1) y ciudad
@@ -125,17 +128,20 @@ cd apps/app && npm run web  # la app en el navegador
 4. **Viajes** (HU-21, HU-22): detección con tus bases (varias, con periodo, M0.5), corrección
    (renombrar, confirmar, unir, dividir, descartar) y creación a mano (hecho).
 5. **Mapa** (M1): niebla de verdad (velo sobre el mundo con agujeros), regiones al acercarse,
-   fichas de país, capas (M1.2), viaje en el tiempo (M1.3) y búsqueda de países y ciudades (M1.8)
-   (hecho). Falta: fichas de región y ciudad, nombres de ciudades en español.
+   fichas de país, región (M1.5) y ciudad (M1.6), capas (M1.2), viaje en el tiempo (M1.3) y
+   búsqueda (M1.8) (hecho). Falta: nombres de ciudades en español, marcar a mano (M1.4c).
 6. **Fotos sin ubicación** (M3.5, HU-19): sugerencia por fecha, en lote o a mano (hecho).
-7. **Pasaporte** (M2.2) y **tarjetas para compartir** (M8.4, M8.5) (hecho, versión inicial).
-8. **onboarding** (M0): portada, onboarding, registro, permisos.
+7. **Pasaporte** (M2.2), **progreso por continente** (M2.1) y **tarjetas para compartir** (M8.4,
+   M8.5) (hecho).
+8. **onboarding** (M0): portada, tres láminas, permiso, lectura en directo, tu base y primera
+   revelación (hecho, `app/welcome.tsx`). Falta: registro (M0.3) con Supabase Auth.
 9. **photos** (M3): galería por lugar (M3.1) y por tiempo (M3.2) con miniaturas del carrete,
-   detalle deslizable (M3.4) y corrección de ubicación (M3.4b) (hecho). Falta: ocultar (M3.7),
-   bajar a región y ciudad, mapa de fotos (M3.3).
+   detalle deslizable (M3.4), corrección de ubicación (M3.4b) y ocultar fotos (M3.7) (hecho).
+   Falta: selección múltiple (M3.7), mapa de fotos (M3.3).
 10. **trips** (M4): días y notas (HandNote) en el detalle.
-11. **settings** (M10): ajustes, privacidad, almacenamiento, datos y **Créditos** (obligatorio
-    citar GeoNames, CC BY 4.0; ver `apps/app/features/map/data/README.md`).
+11. **settings** (M10): ajustes, privacidad, fotos y almacenamiento (con fotos ocultas), tus datos
+    (exportar sin coordenadas y borrar todo) y **Créditos** con GeoNames (CC BY 4.0) (hecho).
+    Falta: General (M10.5) y la cuenta, cuando llegue Supabase.
 
 Lo que ya existe en `packages/domain` (fotos, viajes, niebla, gastos) son interfaces y algoritmos
 puros con sus tests; falta conectarlos a datos reales. `expenses` es de V2 y no entra en el MVP.
