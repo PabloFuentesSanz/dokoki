@@ -71,13 +71,24 @@ export default function PhotoScreen() {
   const trip = current ? trips.find((t) => t.photoIds.includes(current.photoId)) : undefined;
   const imageHeight = Math.round(height * 0.58);
 
-  const crumbs = current
+  // País › región › ciudad; cada nivel abre su ficha.
+  const levels: { level: 'country' | 'region' | 'city'; id: string; name: string }[] = current
     ? [
-        current.countryCode ? countryName(current.countryCode) : null,
-        current.regionId ? regionName(current.regionId) : null,
-        current.cityId ? cityName(current.cityId) : null,
-      ].filter((c): c is string => c !== null)
+        {
+          level: 'country' as const,
+          id: current.countryCode,
+          name: countryName(current.countryCode),
+        },
+        ...(current.regionId
+          ? [{ level: 'region' as const, id: current.regionId, name: regionName(current.regionId) }]
+          : []),
+        ...(current.cityId
+          ? [{ level: 'city' as const, id: current.cityId, name: cityName(current.cityId) }]
+          : []),
+      ]
     : [];
+  const crumbs = levels.map((l) => l.name);
+  const cityId = current?.cityId ?? null;
 
   return (
     <Paper>
@@ -118,7 +129,18 @@ export default function PhotoScreen() {
         />
         {current ? (
           <ScrollView contentContainerStyle={styles.info}>
-            {crumbs.length > 0 ? <Breadcrumbs items={crumbs} /> : null}
+            {crumbs.length > 0 ? (
+              <Breadcrumbs
+                items={crumbs}
+                onNavigate={(i) => {
+                  const target = levels[i];
+                  if (target?.level === 'country')
+                    router.push({ pathname: '/country/[code]', params: { code: target.id } });
+                  if (target?.level === 'region')
+                    router.push({ pathname: '/region/[id]', params: { id: target.id } });
+                }}
+              />
+            ) : null}
             <Text role="heading" style={styles.title}>
               {crumbs.at(-1) ?? 'Sin lugar'}
             </Text>
@@ -139,19 +161,26 @@ export default function PhotoScreen() {
               <Button variant="secondary" icon="pin" onPress={() => setFixing(true)}>
                 Corregir ubicación
               </Button>
-              {current.countryCode ? (
+              {cityId ? (
+                <Button
+                  variant="ghost"
+                  onPress={() => router.push({ pathname: '/city/[id]', params: { id: cityId } })}
+                >
+                  {`Ver ${cityName(cityId)}`}
+                </Button>
+              ) : (
                 <Button
                   variant="ghost"
                   onPress={() =>
                     router.push({
                       pathname: '/country/[code]',
-                      params: { code: current.countryCode ?? '' },
+                      params: { code: current.countryCode },
                     })
                   }
                 >
                   {`Ver ${countryName(current.countryCode)}`}
                 </Button>
-              ) : null}
+              )}
               <Button variant="ghost" icon="eyeOff" onPress={() => setConfirmHide(true)}>
                 Ocultar de Atlas
               </Button>

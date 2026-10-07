@@ -90,3 +90,29 @@ export function searchCountries(query: string, limit = 5): { code: string; name:
   const pool = starts.length > 0 ? starts : searchableCountries.filter((c) => c.key.includes(q));
   return pool.slice(0, limit).map(({ code, name }) => ({ code, name }));
 }
+
+const CONTINENT_ORDER = [
+  'Europe',
+  'Asia',
+  'Africa',
+  'North America',
+  'South America',
+  'Oceania',
+] as const;
+
+/** M2.1 · Progreso por continente: países visitados sobre el total de cada continente. */
+export function continentProgress(
+  visited: Iterable<string>,
+): { continent: string; visited: number; total: number }[] {
+  const seen = new Set(visited);
+  return CONTINENT_ORDER.map((key) => {
+    const codes = countryAreas.features
+      .filter((f) => f.properties.continent === key)
+      .map((f) => f.properties.id);
+    return {
+      continent: CONTINENTS[key] ?? key,
+      visited: codes.filter((code) => seen.has(code)).length,
+      total: codes.length,
+    };
+  });
+}

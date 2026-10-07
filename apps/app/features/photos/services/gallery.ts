@@ -1,15 +1,18 @@
 import type { PlaceAssignment } from '@atlas/domain';
 
 /** Qué fotos enseña una galería: todas, las de un país, una ciudad o un viaje. */
-export type GalleryScope = { kind: 'all' } | { kind: 'country' | 'city' | 'trip'; id: string };
+export type GalleryScope =
+  { kind: 'all' } | { kind: 'country' | 'region' | 'city' | 'trip'; id: string };
 
-/** Lee el ámbito de la ruta (`country:JP`, `city:3117735`, `trip:<id>`). */
+/** Lee el ámbito de la ruta (`country:JP`, `region:JP-26`, `city:3117735`, `trip:<id>`). */
 export function parseScope(raw: string | undefined): GalleryScope {
   const sep = raw?.indexOf(':') ?? -1;
   if (raw === undefined || sep < 0) return { kind: 'all' };
   const kind = raw.slice(0, sep);
   const id = raw.slice(sep + 1);
-  return kind === 'country' || kind === 'city' || kind === 'trip' ? { kind, id } : { kind: 'all' };
+  return kind === 'country' || kind === 'region' || kind === 'city' || kind === 'trip'
+    ? { kind, id }
+    : { kind: 'all' };
 }
 
 const newestFirst = (a: PlaceAssignment, b: PlaceAssignment): number => b.takenAt - a.takenAt;
@@ -26,6 +29,8 @@ export function selectPhotos(
         return true;
       case 'country':
         return a.countryCode === scope.id;
+      case 'region':
+        return a.regionId === scope.id;
       case 'city':
         return a.cityId === scope.id;
       case 'trip':

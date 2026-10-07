@@ -18,7 +18,7 @@ const photo = (
   photoId: id,
   takenAt,
   countryCode,
-  regionId: null,
+  regionId: cityId === 'kyoto' ? 'JP-26' : null,
   cityId,
   placeId: null,
   source: 'gps',
@@ -37,6 +37,7 @@ describe('parseScope', () => {
   it('lee el ámbito de la ruta y cae en todas si no lo entiende', () => {
     expect(parseScope('country:JP')).toEqual({ kind: 'country', id: 'JP' });
     expect(parseScope('city:123')).toEqual({ kind: 'city', id: '123' });
+    expect(parseScope('region:JP-26')).toEqual({ kind: 'region', id: 'JP-26' });
     expect(parseScope('trip:t-1:2')).toEqual({ kind: 'trip', id: 't-1:2' });
     expect(parseScope(undefined)).toEqual({ kind: 'all' });
     expect(parseScope('planeta:x')).toEqual({ kind: 'all' });
@@ -58,6 +59,10 @@ describe('selectPhotos', () => {
     expect(
       selectPhotos(ALL, { kind: 'trip', id: 't' }, new Set(['a', 'd'])).map((p) => p.photoId),
     ).toEqual(['d', 'a']);
+    expect(selectPhotos(ALL, { kind: 'region', id: 'JP-26' }).map((p) => p.photoId)).toEqual([
+      'c',
+      'a',
+    ]);
     expect(selectPhotos(ALL, { kind: 'all' })).toHaveLength(6);
   });
 });

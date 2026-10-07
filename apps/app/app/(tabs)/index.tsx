@@ -104,8 +104,12 @@ export default function MapScreen() {
         routes={routes}
         layers={layers}
         onPressArea={(area) => {
-          const code = area.level === 'region' ? regionCountry(area.id) : area.id;
-          if (code) router.push({ pathname: '/country/[code]', params: { code } });
+          // De cerca se toca una región (ficha M1.5); de lejos, el país (M1.4).
+          if (area.level === 'region' && regionCountry(area.id)) {
+            router.push({ pathname: '/region/[id]', params: { id: area.id } });
+          } else if (area.level !== 'region') {
+            router.push({ pathname: '/country/[code]', params: { code: area.id } });
+          }
         }}
         accessibilityLabel="Tu mapa del mundo"
       />

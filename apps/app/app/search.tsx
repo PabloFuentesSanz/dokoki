@@ -1,41 +1,15 @@
-import { TextField, Tag, colors, spacing, touchTarget, typography } from '@atlas/design-system';
+import { TextField, colors, spacing, typography } from '@atlas/design-system';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../components/Screen';
 import { useUnlockState } from '../features/map/hooks/useUnlockState';
 import { searchCities } from '../features/map/services/cities';
 import { countryName, searchCountries } from '../features/map/services/countries';
+import { PlaceRow } from '../features/map/ui/PlaceRow';
 import { usePhotoLibrary } from '../features/photos/store/PhotoLibraryProvider';
 
 const fotos = (n: number): string => `${n.toLocaleString('es-ES')} ${n === 1 ? 'foto' : 'fotos'}`;
-
-function Result({
-  name,
-  meta,
-  visited,
-  onPress,
-}: {
-  name: string;
-  meta: string;
-  visited: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      role="link"
-      aria-label={`${name}, ${meta}`}
-      onPress={onPress}
-      style={({ pressed }) => [styles.result, pressed && styles.pressed]}
-    >
-      <View style={styles.resultText}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.meta}>{meta}</Text>
-      </View>
-      <Tag tone={visited ? 'visited' : 'unexplored'}>{visited ? 'Visitado' : 'Por descubrir'}</Tag>
-    </Pressable>
-  );
-}
 
 /** M1.8 · Búsqueda de países y ciudades, en el dispositivo y sin red. */
 export default function SearchScreen() {
@@ -68,7 +42,7 @@ export default function SearchScreen() {
           {countries.map((c) => {
             const entry = state.countries[c.code];
             return (
-              <Result
+              <PlaceRow
                 key={c.code}
                 name={c.name}
                 meta={entry ? fotos(entry.photoCount) : c.code}
@@ -89,7 +63,7 @@ export default function SearchScreen() {
           {cities.map((city) => {
             const count = photosByCity.get(city.id) ?? 0;
             return (
-              <Result
+              <PlaceRow
                 key={city.id}
                 name={city.name}
                 meta={
@@ -98,12 +72,8 @@ export default function SearchScreen() {
                     : countryName(city.country)
                 }
                 visited={count > 0}
-                // TODO(M1.6): ficha de ciudad. Mientras, sus fotos o la ficha de su país.
-                onPress={() =>
-                  count > 0
-                    ? router.push({ pathname: '/gallery', params: { scope: `city:${city.id}` } })
-                    : router.push({ pathname: '/country/[code]', params: { code: city.country } })
-                }
+                feminine
+                onPress={() => router.push({ pathname: '/city/[id]', params: { id: city.id } })}
               />
             );
           })}
@@ -118,17 +88,5 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   heading: { ...typography.heading, color: colors.ink, marginBottom: spacing[2] },
-  result: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[3],
-    minHeight: touchTarget,
-    paddingVertical: spacing[3],
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
-  },
-  pressed: { backgroundColor: colors.paperRaised },
-  resultText: { flex: 1 },
-  name: { ...typography.bodyStrong, color: colors.ink },
   meta: { ...typography.data, color: colors.inkMuted },
 });

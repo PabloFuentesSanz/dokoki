@@ -2,6 +2,7 @@ import type { PlaceAssignment } from '@atlas/domain';
 import { useMemo } from 'react';
 import { cityName } from '../../map/services/cities';
 import { countryName } from '../../map/services/countries';
+import { regionName } from '../../map/services/regions';
 import { useTrips } from '../../trips/hooks/useTrips';
 import { parseScope, selectPhotos, type GalleryScope } from '../services/gallery';
 import { usePhotoLibrary } from '../store/PhotoLibraryProvider';
@@ -24,11 +25,13 @@ export function useGallery(rawScope: string | undefined): Gallery {
     const title =
       scope.kind === 'country'
         ? countryName(scope.id)
-        : scope.kind === 'city'
-          ? cityName(scope.id)
-          : scope.kind === 'trip'
-            ? (trip?.name ?? 'Viaje')
-            : 'Todas tus fotos';
+        : scope.kind === 'region'
+          ? regionName(scope.id)
+          : scope.kind === 'city'
+            ? cityName(scope.id)
+            : scope.kind === 'trip'
+              ? (trip?.name ?? 'Viaje')
+              : 'Todas tus fotos';
     return { scope, title, photos: selectPhotos(assignments, scope, new Set(trip?.photoIds)) };
   }, [rawScope, assignments, trips]);
 }

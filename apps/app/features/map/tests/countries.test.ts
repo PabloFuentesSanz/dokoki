@@ -4,6 +4,7 @@ import {
   countryCount,
   countryName,
   countryResolver,
+  continentProgress,
   searchCountries,
   toCountryCollection,
 } from '../services/countries';
@@ -48,5 +49,22 @@ describe('searchCountries', () => {
 
   it('si nada empieza así, busca dentro del nombre', () => {
     expect(searchCountries('landia').map((c) => c.code)).toContain('FI');
+  });
+});
+
+describe('continentProgress', () => {
+  it('cuenta los visitados por continente, en orden fijo', () => {
+    const progress = continentProgress(['ES', 'FR', 'JP']);
+    expect(progress.map((p) => p.continent)).toEqual([
+      'Europa',
+      'Asia',
+      'África',
+      'América del Norte',
+      'América del Sur',
+      'Oceanía',
+    ]);
+    expect(progress[0]).toMatchObject({ visited: 2 });
+    expect(progress[1]).toMatchObject({ visited: 1 });
+    expect(progress[0]?.total).toBeGreaterThan(30);
   });
 });

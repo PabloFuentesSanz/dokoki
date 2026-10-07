@@ -16,6 +16,7 @@ import { Screen } from '../../components/Screen';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
 import { continentName, countryName } from '../../features/map/services/countries';
 import { regionsOf } from '../../features/map/services/regions';
+import { PlaceRow } from '../../features/map/ui/PlaceRow';
 import { useGallery } from '../../features/photos/hooks/useGallery';
 import { PhotoPreview } from '../../features/photos/ui/PhotoPreview';
 import { tripMeta, useTrips } from '../../features/trips/hooks/useTrips';
@@ -109,7 +110,19 @@ export default function CountryScreen() {
               <Text role="heading" style={styles.heading}>
                 Dónde has estado
               </Text>
-              <Text style={styles.body}>{visitedRegions.map((r) => r.name).join(', ')}</Text>
+              {visitedRegions
+                .map((r) => ({ ...r, photos: state.regions[r.id]?.photoCount ?? 0 }))
+                .sort((a, b) => b.photos - a.photos)
+                .map((r) => (
+                  <PlaceRow
+                    key={r.id}
+                    name={r.name}
+                    meta={`${r.photos.toLocaleString('es-ES')} ${r.photos === 1 ? 'foto' : 'fotos'}`}
+                    visited
+                    feminine
+                    onPress={() => router.push({ pathname: '/region/[id]', params: { id: r.id } })}
+                  />
+                ))}
             </View>
           ) : null}
 
@@ -137,6 +150,5 @@ const styles = StyleSheet.create({
   stamp: { alignItems: 'flex-end', marginTop: -spacing[8] },
   heading: { ...typography.heading, color: colors.ink, marginBottom: spacing[2] },
   block: { gap: spacing[1] },
-  body: { ...typography.body, color: colors.ink },
   muted: { ...typography.bodyS, color: colors.inkMuted },
 });
