@@ -152,9 +152,10 @@ Escala `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64`. Márgenes laterales: `space
 
 ## Iconografía
 
-24 iconos propios (`Icon`) de trazo 1,6 px, puntas redondeadas, sin relleno, en rejilla de 24:
+26 iconos propios (`Icon`) de trazo 1,6 px, puntas redondeadas, sin relleno, en rejilla de 24:
 `map, trips, plus, photos, me, back, share, pin, camera, note, coin, check, close, search, layers,
-calendar, plane, train, bed, ticket, food, compass, cloud, sync`. 22 px en navegación, 18 px en
+calendar, plane, train, bed, ticket, food, compass, cloud, sync, settings, eyeOff` (los dos
+últimos, nuevos en el código: pendientes de añadir al artefacto). 22 px en navegación, 18 px en
 botones, 14 px en etiquetas. Sin emoji; los países se identifican con su código ISO (`CountryChip`),
 no con banderas.
 
@@ -180,7 +181,7 @@ Algunos controles añaden callbacks que el prototipo HTML no necesitaba (`onNavi
 
 Tipos que aparecen abajo:
 
-- `IconName`: los 24 iconos de la sección Iconografía.
+- `IconName`: los 26 iconos de la sección Iconografía.
 - `ButtonVariant`: `'primary' | 'secondary' | 'ghost' | 'danger'`.
 - `TextFieldType`: `'text' | 'email' | 'password' | 'number'`.
 - `TagTone`: `'neutral' | 'visited' | 'planned' | 'settled' | 'warning' | 'unexplored'`.

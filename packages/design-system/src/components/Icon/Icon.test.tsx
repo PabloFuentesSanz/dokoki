@@ -22,6 +22,6 @@ describe('Icon', () => {
   });
 
   it('tiene los 24 iconos del sistema', () => {
-    expect(iconNames).toHaveLength(24);
+    expect(iconNames).toHaveLength(26);
   });
 });
