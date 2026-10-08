@@ -49,7 +49,7 @@ const when = (ms: number): string =>
 /**
  * M3.4 · Detalle de foto, deslizando entre las fotos del mismo ámbito, y M3.4b · Corregir
  * ubicación (se guarda como manual). Las coordenadas no se muestran: solo el lugar.
- * TODO(M3.7): ocultar la foto; TODO(M3.4): notas (HandNote) y añadir a un viaje.
+ * Ocultar (M3.7) desde aquí; TODO(M3.4): notas por foto.
  */
 export default function PhotoScreen() {
   const { id = '', scope = 'all' } = useLocalSearchParams<{ id: string; scope: string }>();

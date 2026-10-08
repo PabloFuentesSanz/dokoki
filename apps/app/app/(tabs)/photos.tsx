@@ -65,7 +65,8 @@ function UnlocatedCard({ count }: { count: number }) {
 /**
  * M3.1 · Fotos por lugar y M3.2 · Fotos por tiempo. Miniaturas leídas en el momento del carrete:
  * nada se copia ni sale del móvil. La lectura del carrete (M3.8) está en "Importación".
- * TODO(M3.1): bajar a región y ciudad dentro de cada país; pestaña "En el mapa" (M3.3).
+ * "En el mapa" (M3.3) agrupa las fotos por lugar y abre cada grupo en una hoja.
+ * TODO(M3.1): carpetas de región y ciudad dentro de cada país.
  */
 export default function PhotosScreen() {
   const { assignments, unlocated, scannedTotal, status, photos } = usePhotoLibrary();

@@ -83,10 +83,8 @@ function cellKey(point: LatLng): string {
  *
  * Coste: O(n) sobre el lote más una búsqueda por celda distinta.
  *
- * TODO(M0.6): implementar el PlaceResolver real en la app: límites administrativos
- *   (geoBoundaries / Natural Earth simplificados, empaquetados por país) indexados con un
- *   R-tree en expo-sqlite, con búsqueda punto-en-polígono en un worker nativo.
- *   Objetivo HU-06: ≥ 98 % de fotos en el país correcto y ≥ 95 % en la región correcta.
+ * El PlaceResolver real vive en la app (apps/app/features/map/services/places.ts): Natural Earth
+ *   para países y regiones con punto-en-polígono y GeoNames para la ciudad más cercana.
  * TODO(M0.6): lugares (placeId) a partir de un índice local de POIs; hoy depende del resolver.
  */
 export function assignPhotosToBatch(

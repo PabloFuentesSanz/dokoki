@@ -43,7 +43,7 @@ export function toTripPhotos(
 
 /**
  * Base propuesta (HU-04): la ciudad con más fotos, en el centro de sus fotos.
- * TODO(M0.5): que la persona la confirme o la cambie, y guardarla.
+ * Es la sugerencia de base de la bienvenida (M0.5); la persona la confirma o la cambia.
  */
 export function homeBaseFrom(
   photos: readonly Located[],
