@@ -1,11 +1,15 @@
 /** Ciudades de GeoNames (≥ 15.000 habitantes, CC BY 4.0), en el dispositivo. */
 import { createNearestIndex } from '@atlas/domain';
 import rawCities from '../data/cities.json';
+import rawSpanishNames from '../data/cities-es.json';
 import { isRecord } from './geodata';
 
 export interface City {
   id: string;
+  /** En español si lo conocemos ("Kioto"); si no, el de GeoNames. */
   name: string;
+  /** Nombre en GeoNames ("Kyoto"): también se busca por él. */
+  localName: string;
   country: string;
   lat: number;
   lng: number;
@@ -22,11 +26,20 @@ export function toCities(json: unknown): City[] {
       throw new Error('Ciudad sin id, nombre o país');
     if (typeof lat !== 'number' || typeof lng !== 'number' || typeof population !== 'number')
       throw new Error('Ciudad sin coordenadas');
-    return { id, name, country, lat, lng, population };
+    return { id, name, localName: name, country, lat, lng, population };
   });
 }
 
-export const cities = toCities(rawCities);
+/** Nombres en español por id (CLDR + lista curada; ver scripts/city-names-es.py). */
+export function withSpanishNames(list: City[], names: unknown): City[] {
+  if (!isRecord(names)) return list;
+  return list.map((city) => {
+    const es = names[city.id];
+    return typeof es === 'string' ? { ...city, name: es } : city;
+  });
+}
+
+export const cities = withSpanishNames(toCities(rawCities), rawSpanishNames);
 export const cityIndex = createNearestIndex(cities);
 const byId = new Map(cities.map((city) => [city.id, city]));
 
@@ -42,14 +55,22 @@ const normalize = (text: string): string =>
   text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
 const searchable = cities
-  .map((city) => ({ city, key: normalize(city.name) }))
+  .map((city) => ({
+    city,
+    key: normalize(city.name),
+    alt: city.localName === city.name ? null : normalize(city.localName),
+  }))
   .sort((a, b) => b.city.population - a.city.population);
 
-/** Ciudades cuyo nombre empieza (o, si no hay, contiene) el texto. Las más pobladas primero. */
+/**
+ * Ciudades cuyo nombre (en español o en GeoNames) empieza por el texto, o si no hay, lo contiene.
+ * Las más pobladas primero.
+ */
 export function searchCities(query: string, limit = 8): City[] {
   const q = normalize(query);
   if (q.length === 0) return [];
-  const starts = searchable.filter((s) => s.key.startsWith(q));
-  const pool = starts.length > 0 ? starts : searchable.filter((s) => s.key.includes(q));
+  const starts = searchable.filter((s) => s.key.startsWith(q) || s.alt?.startsWith(q));
+  const pool =
+    starts.length > 0 ? starts : searchable.filter((s) => s.key.includes(q) || s.alt?.includes(q));
   return pool.slice(0, limit).map((s) => s.city);
 }

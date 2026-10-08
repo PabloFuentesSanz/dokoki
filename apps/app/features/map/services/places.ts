@@ -8,7 +8,7 @@ import { cityIndex } from './cities';
 import { countryCount, countryIndex } from './countries';
 import { regionCountByCountry, regionIndexOf } from './regions';
 
-export const PLACES_VERSION = 'ne50-countries+ne10-admin1+geonames15k-v1';
+export const PLACES_VERSION = 'ne50-countries+ne10-admin1+geonames15k-v2';
 
 /** Una foto a más de esta distancia de cualquier ciudad no se asigna a ninguna. */
 export const CITY_RADIUS_KM = 30;

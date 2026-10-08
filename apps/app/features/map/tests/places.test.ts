@@ -7,7 +7,7 @@ describe('placeResolver', () => {
   it('resuelve país, región y ciudad de Kioto, Nara y Madrid', () => {
     const kyoto = placeResolver.resolve({ lat: 35.0116, lng: 135.7681 });
     expect(kyoto).toMatchObject({ countryCode: 'JP', regionId: 'JP-26' });
-    expect(cityName(kyoto?.cityId ?? '')).toBe('Kyoto');
+    expect(cityName(kyoto?.cityId ?? '')).toBe('Kioto');
 
     const nara = placeResolver.resolve({ lat: 34.6851, lng: 135.8048 });
     expect(nara?.regionId).toBe('JP-29');
@@ -40,10 +40,35 @@ describe('searchCities', () => {
   it('encuentra por prefijo sin tildes ni mayúsculas, las más pobladas primero', async () => {
     const { searchCities } = await import('../services/cities');
     const results = searchCities('kyo', 5);
-    expect(results[0]?.name).toBe('Kyoto');
-    expect(searchCities('Cádiz', 3).some((c) => c.name === 'Cadiz' && c.country === 'ES')).toBe(
+    expect(results[0]?.name).toBe('Kioto');
+    expect(searchCities('Cádiz', 3).some((c) => c.name === 'Cádiz' && c.country === 'ES')).toBe(
       true,
     );
+  });
+
+  it('busca por el nombre en español y por el de GeoNames', async () => {
+    const { searchCities } = await import('../services/cities');
+    expect(searchCities('kioto', 1)[0]?.localName).toBe('Kyoto');
+    expect(searchCities('munich', 1)[0]?.name).toBe('Múnich');
+    expect(searchCities('nueva york', 1)[0]?.country).toBe('US');
+  });
+
+  it('los barrios no son ciudades: el Retiro es Madrid y el Eixample, Barcelona', () => {
+    expect(cityName(placeResolver.resolve({ lat: 40.4153, lng: -3.6845 })?.cityId ?? '')).toBe(
+      'Madrid',
+    );
+    expect(cityName(placeResolver.resolve({ lat: 41.3917, lng: 2.1649 })?.cityId ?? '')).toBe(
+      'Barcelona',
+    );
+  });
+
+  it('withSpanishNames solo cambia las que tienen traducción', async () => {
+    const { withSpanishNames } = await import('../services/cities');
+    const list = [
+      { id: '1', name: 'Kyoto', localName: 'Kyoto', country: 'JP', lat: 0, lng: 0, population: 1 },
+    ];
+    expect(withSpanishNames(list, { '1': 'Kioto' })[0]?.name).toBe('Kioto');
+    expect(withSpanishNames(list, null)).toBe(list);
   });
 
   it('una búsqueda vacía no devuelve nada', async () => {

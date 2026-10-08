@@ -5,7 +5,7 @@ import { citiesInRegion, regionOfCity } from '../services/regionCities';
 describe('citiesInRegion', () => {
   it('Kioto (JP-26) empieza por la ciudad de Kioto e incluye Uji, no Osaka', () => {
     const names = citiesInRegion('JP-26').map((c) => c.name);
-    expect(names[0]).toBe('Kyoto');
+    expect(names[0]).toBe('Kioto');
     expect(names).toContain('Uji');
     expect(names).not.toContain('Osaka');
     expect(citiesInRegion('JP-26')).toBe(citiesInRegion('JP-26'));
