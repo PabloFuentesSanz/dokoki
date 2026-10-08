@@ -2,12 +2,14 @@ import { buildFogLayer, computeUnlockState, type UnlockState } from '@atlas/doma
 import type { FogLayer } from '@atlas/map';
 import { useMemo } from 'react';
 import { usePhotoLibrary } from '../../photos/store/PhotoLibraryProvider';
+import { useSettings } from '../../settings/store/SettingsProvider';
 import { countryAreas } from '../services/countries';
 import { placesCatalog } from '../services/places';
 import { regionAreas } from '../services/regions';
 
 /**
- * Estado de desbloqueo y capa de niebla a partir de las fotos leídas. Todo en el móvil.
+ * Estado de desbloqueo y capa de niebla a partir de las fotos leídas y lo marcado a mano (M1.4c).
+ * Todo en el móvil.
  * Con `until` (viaje en el tiempo, M1.3) solo cuenta lo visitado hasta ese instante.
  * La niebla lleva todos los países y solo las regiones de los países visitados: el resto de
  * regiones queda bajo la niebla de su país y así no se mandan 2 MB al mapa.
@@ -18,13 +20,15 @@ export function useUnlockState(options: { until?: number } = {}): {
 } {
   const { until } = options;
   const { assignments } = usePhotoLibrary();
+  const { marks } = useSettings();
   const state = useMemo(
     () =>
       computeUnlockState(assignments, {
         catalog: placesCatalog,
+        manual: marks,
         ...(until !== undefined ? { until } : {}),
       }),
-    [assignments, until],
+    [assignments, marks, until],
   );
 
   // Clave estable: la niebla solo se recalcula cuando se desbloquea algo nuevo.

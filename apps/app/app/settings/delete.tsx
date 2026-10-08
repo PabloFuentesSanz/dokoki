@@ -19,7 +19,7 @@ export default function DeleteScreen() {
   const { state } = useUnlockState();
   const { trips } = useTrips();
   const { forget } = usePhotoLibrary();
-  const { saveBases, setOnboarded } = useSettings();
+  const { saveBases, setOnboarded, saveMarks } = useSettings();
   const { update } = useTripEdits();
   const ready = typed.trim().toLowerCase() === WORD;
 
@@ -28,6 +28,7 @@ export default function DeleteScreen() {
     await forget();
     await update(() => EMPTY_EDITS);
     await saveBases([]);
+    await saveMarks([]);
     await setOnboarded(false);
     router.dismissAll();
     router.replace('/welcome');

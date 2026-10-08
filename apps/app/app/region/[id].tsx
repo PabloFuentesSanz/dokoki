@@ -1,5 +1,7 @@
 import {
   Breadcrumbs,
+  Button,
+  Tag,
   EmptyState,
   ProgressBar,
   Reveal,
@@ -8,7 +10,7 @@ import {
   typography,
 } from '@atlas/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { cityName } from '../../features/map/services/cities';
@@ -19,6 +21,10 @@ import { useGallery } from '../../features/photos/hooks/useGallery';
 import { photoDays } from '../../features/photos/services/photoDays';
 import { PhotoPreview } from '../../features/photos/ui/PhotoPreview';
 import { PlaceRow } from '../../features/map/ui/PlaceRow';
+import { MarkSheet } from '../../features/map/ui/MarkSheet';
+import { useUnlockState } from '../../features/map/hooks/useUnlockState';
+import { addMark, removeMark, yearToDate } from '../../features/settings/services/marks';
+import { useSettings } from '../../features/settings/store/SettingsProvider';
 
 /** Ciudades principales que cuentan para el progreso de una región. */
 const MAIN_CITIES = 6;
@@ -29,6 +35,10 @@ export default function RegionScreen() {
   const country = regionCountry(id) ?? '';
   const name = regionName(id);
   const { photos } = useGallery(`region:${id}`);
+  const { state } = useUnlockState();
+  const { marks, saveMarks } = useSettings();
+  const [marking, setMarking] = useState(false);
+  const entry = state.regions[id];
 
   const visited = useMemo(() => {
     const byCity = new Map<string, { takenAt: number }[]>();
@@ -72,6 +82,39 @@ export default function RegionScreen() {
         </Reveal>
       ) : null}
 
+      {entry?.source === 'manual' ? (
+        <View style={styles.manual}>
+          <Tag tone="settled">Marcada a mano</Tag>
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => void saveMarks(removeMark(marks, `region:${id}`))}
+          >
+            Quitar marca
+          </Button>
+        </View>
+      ) : !entry ? (
+        <Button variant="secondary" icon="check" onPress={() => setMarking(true)}>
+          Ya estuve: marcar a mano
+        </Button>
+      ) : null}
+      <MarkSheet
+        visible={marking}
+        place={name}
+        onClose={() => setMarking(false)}
+        onMark={(year) => {
+          void saveMarks(
+            addMark(marks, {
+              level: 'region',
+              countryCode: country,
+              regionId: id,
+              visitedAt: yearToDate(year),
+            }),
+          );
+          setMarking(false);
+        }}
+      />
+
       {visited.length === 0 && pending.length === 0 ? (
         <EmptyState
           icon="compass"
@@ -114,5 +157,6 @@ export default function RegionScreen() {
 
 const styles = StyleSheet.create({
   block: { gap: spacing[1] },
+  manual: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
   heading: { ...typography.heading, color: colors.ink },
 });
