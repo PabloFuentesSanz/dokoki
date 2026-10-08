@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   assignPhotosToBatch,
+  clusterCellId,
   clusterPhotos,
   nearestInTime,
   suggestPlaceByTime,
@@ -170,6 +171,8 @@ describe('clusterPhotos', () => {
     expect(kyoto?.center.lat).toBeCloseTo(35.012, 5);
     expect(kyoto?.center.lng).toBeCloseTo(135.769, 5);
     expect(clusters.find((c) => c.count === 1)?.center).toEqual({ lat: 34.685, lng: 135.805 });
+    // El id de cada grupo es la celda de sus fotos: así se sabe qué fotos abre (M3.3).
+    expect(kyoto?.id).toBe(clusterCellId({ lat: 35.011, lng: 135.768 }, 0.1));
   });
 
   it('usa ids estables por celda y descarta coordenadas no válidas', () => {

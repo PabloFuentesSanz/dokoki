@@ -183,11 +183,16 @@ export interface PhotoCluster {
  * Agrupa puntos en celdas cuadradas de `cellDegrees` grados para pintarlos en el mapa (M3.3).
  * O(n). Se calcula en el dispositivo: los puntos nunca salen del móvil.
  */
+/** Celda de la rejilla de grupos a la que pertenece un punto: el `id` de su `PhotoCluster`. */
+export function clusterCellId(point: LatLng, cellDegrees: number): string {
+  return `${Math.floor(point.lat / cellDegrees)}:${Math.floor(point.lng / cellDegrees)}`;
+}
+
 export function clusterPhotos(points: readonly LatLng[], cellDegrees: number): PhotoCluster[] {
   const cells = new Map<string, { lat: number; lng: number; count: number }>();
   for (const point of points) {
     if (!isValidCoordinate(point)) continue;
-    const id = `${Math.floor(point.lat / cellDegrees)}:${Math.floor(point.lng / cellDegrees)}`;
+    const id = clusterCellId(point, cellDegrees);
     const cell = cells.get(id);
     if (cell) {
       cell.lat += point.lat;
