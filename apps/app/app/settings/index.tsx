@@ -36,6 +36,12 @@ export default function SettingsScreen() {
             onPress={() => router.push('/bases')}
           />
           <SettingsRow
+            icon="settings"
+            title="General"
+            detail="Idioma, distancias y movimiento"
+            onPress={() => router.push('/settings/general')}
+          />
+          <SettingsRow
             icon="check"
             title="Privacidad"
             detail="Qué se ve cuando compartes"

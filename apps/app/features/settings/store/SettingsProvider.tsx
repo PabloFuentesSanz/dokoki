@@ -10,6 +10,7 @@ import {
 import type { ManualMark } from '@atlas/domain';
 import { parseBases, type Base } from '../services/bases';
 import { parseMarks } from '../services/marks';
+import { parseUnit, type DistanceUnit } from '../services/units';
 import { readSetting, writeSetting } from '../services/settingsStore';
 
 interface SettingsValue {
@@ -22,6 +23,9 @@ interface SettingsValue {
   /** Países y regiones marcados a mano (M1.4c). */
   marks: readonly ManualMark[];
   saveMarks: (marks: readonly ManualMark[]) => Promise<void>;
+  /** Unidad de distancia (M10.5). */
+  unit: DistanceUnit;
+  saveUnit: (unit: DistanceUnit) => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsValue | null>(null);
@@ -31,6 +35,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [bases, setBases] = useState<readonly Base[]>([]);
   const [onboarded, setOnboardedState] = useState(false);
   const [marks, setMarks] = useState<readonly ManualMark[]>([]);
+  const [unit, setUnit] = useState<DistanceUnit>('km');
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -39,8 +44,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       readSetting('bases'),
       readSetting('onboarded'),
       readSetting('manualMarks'),
-    ]).then(([b, done, m]) => {
+      readSetting('unit'),
+    ]).then(([b, done, m, u]) => {
       if (cancelled) return;
+      setUnit(parseUnit(u));
       setMarks(parseMarks(m));
       const parsed = parseBases(b);
       setBases(parsed);
@@ -68,9 +75,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     await writeSetting('manualMarks', next);
   }, []);
 
+  const saveUnit = useCallback(async (next: DistanceUnit) => {
+    setUnit(next);
+    await writeSetting('unit', next);
+  }, []);
+
   const value = useMemo(
-    () => ({ loaded, bases, saveBases, onboarded, setOnboarded, marks, saveMarks }),
-    [loaded, bases, saveBases, onboarded, setOnboarded, marks, saveMarks],
+    () => ({ loaded, bases, saveBases, onboarded, setOnboarded, marks, saveMarks, unit, saveUnit }),
+    [loaded, bases, saveBases, onboarded, setOnboarded, marks, saveMarks, unit, saveUnit],
   );
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }

@@ -28,6 +28,8 @@ import { PhotoThumb } from '../../features/photos/ui/PhotoThumb';
 import { useTrips } from '../../features/trips/hooks/useTrips';
 import { routeKm, tripDays } from '../../features/trips/services/tripDays';
 import { NoteSheet } from '../../features/trips/ui/NoteSheet';
+import { formatDistance } from '../../features/settings/services/units';
+import { useSettings } from '../../features/settings/store/SettingsProvider';
 import { TripEditor } from '../../features/trips/ui/TripEditor';
 
 const THUMBS_PER_DAY = 5;
@@ -51,6 +53,7 @@ export default function TripScreen() {
   const tripsResult = useTrips();
   const { trips, tripPhotos, notes, note } = tripsResult;
   const { photos } = usePhotoLibrary();
+  const { unit } = useSettings();
   const index = trips.findIndex((t) => t.id === id);
   const trip = trips[index];
   const [editing, setEditing] = useState(false);
@@ -146,7 +149,7 @@ export default function TripScreen() {
               value: String(trip.cities.length),
               label: trip.cities.length === 1 ? 'ciudad' : 'ciudades',
             },
-            { value: km.toLocaleString('es-ES'), label: 'km' },
+            formatDistance(km, unit),
             { value: trip.photoIds.length.toLocaleString('es-ES'), label: 'fotos' },
           ]}
         />
