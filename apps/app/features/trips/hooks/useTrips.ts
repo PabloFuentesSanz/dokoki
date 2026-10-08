@@ -13,7 +13,7 @@ import { regionName } from '../../map/services/regions';
 import { usePhotoLibrary } from '../../photos/store/PhotoLibraryProvider';
 import { toHomeBases } from '../../settings/services/bases';
 import { useSettings } from '../../settings/store/SettingsProvider';
-import { hideTrip, lockTrips, visibleTrips } from '../services/tripEdits';
+import { hideTrip, lockTrips, setNote, visibleTrips } from '../services/tripEdits';
 import { homeBaseFrom, toTripPhotos } from '../services/tripInputs';
 import { useTripEdits } from '../store/TripEditsProvider';
 
@@ -29,6 +29,8 @@ export interface TripActions {
   dismiss: (trip: DetectedTrip) => Promise<void>;
   /** Crea un viaje con las fotos con lugar entre dos instantes (incluidos). */
   create: (from: number, until: number, name?: string) => Promise<DetectedTrip | null>;
+  /** Escribe una nota a mano (del viaje o de un día). Escribir confirma el viaje. */
+  note: (trip: DetectedTrip, key: string, text: string) => Promise<void>;
 }
 
 export interface TripsResult extends TripActions {
@@ -39,6 +41,8 @@ export interface TripsResult extends TripActions {
   /** Ciudad sugerida como base: la que tiene más fotos (HU-04). */
   suggestedCityId: string | null;
   tripPhotos: readonly TripPhoto[];
+  /** Notas a mano por clave (`<idViaje>` o `<idViaje>@<día>`). */
+  notes: Readonly<Record<string, string>>;
 }
 
 /**
@@ -119,9 +123,17 @@ export function useTrips(): TripsResult {
     [tripPhotos, update],
   );
 
+  const note = useCallback(
+    (trip: DetectedTrip, key: string, text: string) =>
+      update((e) => setNote(lockTrips(e, [trip], [trip.id]), key, text)),
+    [update],
+  );
+
   return {
     trips,
     needsBase,
+    notes: edits.notes,
+    note,
     suggestedCityId,
     tripPhotos,
     rename,

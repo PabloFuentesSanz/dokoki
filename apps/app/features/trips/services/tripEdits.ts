@@ -9,9 +9,21 @@ export interface TripEdits {
   locked: DetectedTrip[];
   /** Viajes descartados ("no es un viaje"): sus fotos no vuelven a formar un viaje. */
   hidden: DetectedTrip[];
+  /** Notas a mano (M4.2): `<idViaje>` para el viaje, `<idViaje>@<aaaa-mm-dd>` para un día. */
+  notes: Record<string, string>;
 }
 
-export const EMPTY_EDITS: TripEdits = { locked: [], hidden: [] };
+export const EMPTY_EDITS: TripEdits = { locked: [], hidden: [], notes: {} };
+
+/** Escribe (o borra, si queda vacía) una nota. */
+export function setNote(edits: TripEdits, key: string, text: string): TripEdits {
+  const clean = text.trim();
+  const others = Object.entries(edits.notes).filter(([k]) => k !== key);
+  return {
+    ...edits,
+    notes: Object.fromEntries(clean.length === 0 ? others : [...others, [key, clean]]),
+  };
+}
 
 /** Añade `trips` bloqueados en lugar de los viajes con id en `replaces`. */
 export function lockTrips(
@@ -21,6 +33,7 @@ export function lockTrips(
 ): TripEdits {
   const gone = new Set([...replaces, ...trips.map((t) => t.id)]);
   return {
+    ...edits,
     locked: [
       ...edits.locked.filter((t) => !gone.has(t.id)),
       ...trips.map((t) => ({ ...t, locked: true })),
@@ -31,6 +44,7 @@ export function lockTrips(
 
 export function hideTrip(edits: TripEdits, trip: DetectedTrip): TripEdits {
   return {
+    ...edits,
     locked: edits.locked.filter((t) => t.id !== trip.id),
     hidden: [...edits.hidden.filter((t) => t.id !== trip.id), { ...trip, locked: true }],
   };
@@ -86,5 +100,10 @@ function parseList(v: unknown): DetectedTrip[] {
 
 export function parseTripEdits(value: unknown): TripEdits {
   if (!isRecord(value)) return EMPTY_EDITS;
-  return { locked: parseList(value.locked), hidden: parseList(value.hidden) };
+  const notes = isRecord(value.notes)
+    ? Object.fromEntries(
+        Object.entries(value.notes).filter((e): e is [string, string] => typeof e[1] === 'string'),
+      )
+    : {};
+  return { locked: parseList(value.locked), hidden: parseList(value.hidden), notes };
 }

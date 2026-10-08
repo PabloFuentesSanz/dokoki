@@ -5,6 +5,7 @@ import {
   hideTrip,
   lockTrips,
   parseTripEdits,
+  setNote,
   visibleTrips,
 } from '../services/tripEdits';
 
@@ -39,5 +40,17 @@ describe('tripEdits', () => {
     expect(parseTripEdits(saved).locked).toEqual([trip('a')]);
     expect(parseTripEdits({ locked: [{ id: 3 }], hidden: 'x' })).toEqual(EMPTY_EDITS);
     expect(parseTripEdits(null)).toEqual(EMPTY_EDITS);
+  });
+
+  it('guarda notas a mano, las borra si quedan vacías y no se pierden al bloquear', () => {
+    let edits = setNote(EMPTY_EDITS, 'a', '  Volver en otoño  ');
+    edits = setNote(edits, 'a@2024-04-12', 'Gion de noche');
+    edits = lockTrips(edits, [trip('a')], []);
+    expect(edits.notes).toEqual({ a: 'Volver en otoño', 'a@2024-04-12': 'Gion de noche' });
+    expect(setNote(edits, 'a', '').notes).toEqual({ 'a@2024-04-12': 'Gion de noche' });
+    const saved: unknown = JSON.parse(
+      JSON.stringify({ ...edits, notes: { ...edits.notes, x: 3 } }),
+    );
+    expect(parseTripEdits(saved).notes).toEqual(edits.notes);
   });
 });
