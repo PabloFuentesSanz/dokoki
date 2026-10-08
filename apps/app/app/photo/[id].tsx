@@ -7,8 +7,6 @@ import {
   Tag,
   colors,
   iconSizes,
-  radii,
-  shadows,
   spacing,
   touchTarget,
   typography,
@@ -36,6 +34,7 @@ import { thumbnailUri } from '../../features/photos/services/thumbnails';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
 import { photoLabel } from '../../features/photos/ui/photoLabel';
 import { useTrips } from '../../features/trips/hooks/useTrips';
+import { Sheet } from '../../components/Sheet';
 
 const when = (ms: number): string =>
   new Date(ms).toLocaleString('es-ES', {
@@ -191,41 +190,29 @@ export default function PhotoScreen() {
       </SafeAreaView>
 
       {/* M3.7b · Confirmar ocultar */}
-      <Modal
-        visible={confirmHide}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setConfirmHide(false)}
-      >
-        <Pressable
-          style={styles.scrim}
-          onPress={() => setConfirmHide(false)}
-          aria-label="Cancelar"
-        />
-        <SafeAreaView edges={['bottom']} style={styles.confirm} role="dialog">
-          <Text role="heading" style={styles.title}>
-            ¿Ocultar esta foto?
-          </Text>
-          <Text style={styles.body}>
-            Deja de salir en tu mapa, en tus viajes y al compartir. No se borra de tu carrete. Si es
-            la única de un lugar, ese lugar vuelve a la niebla. La recuperas en Ajustes, Fotos y
-            almacenamiento.
-          </Text>
-          <Button
-            block
-            onPress={() => {
-              if (current) void hidePhotos([current.photoId]);
-              setConfirmHide(false);
-              if (photos.length <= 1) router.back();
-            }}
-          >
-            Ocultar foto
-          </Button>
-          <Button block variant="ghost" onPress={() => setConfirmHide(false)}>
-            Cancelar
-          </Button>
-        </SafeAreaView>
-      </Modal>
+      <Sheet visible={confirmHide} onClose={() => setConfirmHide(false)} label="Ocultar foto">
+        <Text role="heading" style={styles.title}>
+          ¿Ocultar esta foto?
+        </Text>
+        <Text style={styles.body}>
+          Deja de salir en tu mapa, en tus viajes y al compartir. No se borra de tu carrete. Si es
+          la única de un lugar, ese lugar vuelve a la niebla. La recuperas en Ajustes, Fotos y
+          almacenamiento.
+        </Text>
+        <Button
+          block
+          onPress={() => {
+            if (current) void hidePhotos([current.photoId]);
+            setConfirmHide(false);
+            if (photos.length <= 1) router.back();
+          }}
+        >
+          Ocultar foto
+        </Button>
+        <Button block variant="ghost" onPress={() => setConfirmHide(false)}>
+          Cancelar
+        </Button>
+      </Sheet>
 
       <Modal visible={fixing} animationType="slide" onRequestClose={() => setFixing(false)}>
         <Paper>
@@ -283,13 +270,4 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   tripText: { ...typography.bodyStrong, color: colors.ink, textDecorationLine: 'underline' },
-  scrim: { flex: 1, backgroundColor: colors.ink, opacity: 0.3 },
-  confirm: {
-    gap: spacing[3],
-    padding: spacing[5],
-    backgroundColor: colors.paperRaised,
-    borderTopLeftRadius: radii.sm,
-    borderTopRightRadius: radii.sm,
-    boxShadow: shadows.sheet,
-  },
 });
