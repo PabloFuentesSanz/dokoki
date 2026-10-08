@@ -64,8 +64,10 @@ packages/map             AtlasMap: una interfaz, motor nativo y web
     no soporta; por eso se fija la 5.
 - Capas propias (niebla, desbloqueado, rutas, grupos de fotos) definidas una vez en `overlays.ts` y
   pintadas con los tokens del design system.
-- Estilo base provisional: OpenFreeMap Positron. Pendiente: estilo propio "Cuaderno de explorador" en
-  Maputnik (tierra `paper`, agua `water`, etiquetas en serif).
+- Estilo base propio "Cuaderno de explorador" (`packages/map/src/notebookStyle.ts`) sobre las
+  teselas vectoriales de OpenFreeMap: tierra `paper`, agua `water`, fronteras en tinta discontinua
+  y nombres en español (`name:es`). En nativo se escribe en la caché y se pasa como `file://`; en
+  web, como data URL. Las fuentes de etiquetas son las de OpenFreeMap (Noto Sans).
 - Privacidad: pedir teselas revela la zona que se está mirando, no la ubicación de las fotos. Si se
   quiere cero peticiones para el mapa, el siguiente paso son teselas offline (PMTiles) en el dispositivo.
 
