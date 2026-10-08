@@ -38,24 +38,22 @@ export function ClusterSheet({
           </View>
           <View style={styles.grid} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
             {width > 0
-              ? group.photos
-                  .slice(0, SHOWN)
-                  .map((p) => (
-                    <PhotoThumb
-                      key={p.photoId}
-                      id={p.photoId}
-                      label={photoLabel(p.takenAt)}
-                      style={{ width: cell, height: cell }}
-                      onPress={() =>
-                        go(() =>
-                          router.push({
-                            pathname: '/photo/[id]',
-                            params: { id: p.photoId, scope },
-                          }),
-                        )
-                      }
-                    />
-                  ))
+              ? group.photos.slice(0, SHOWN).map((p) => (
+                  <PhotoThumb
+                    key={p.photoId}
+                    id={p.photoId}
+                    label={photoLabel(p.takenAt)}
+                    style={{ width: cell, height: cell }}
+                    onPress={() =>
+                      go(() =>
+                        router.push({
+                          pathname: '/photo/[id]',
+                          params: { id: p.photoId, scope },
+                        }),
+                      )
+                    }
+                  />
+                ))
               : null}
           </View>
           {group.cityId ? (
