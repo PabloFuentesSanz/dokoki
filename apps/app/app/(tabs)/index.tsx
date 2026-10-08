@@ -22,7 +22,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUnlockState } from '../../features/map/hooks/useUnlockState';
 import { cityById } from '../../features/map/services/cities';
 import { regionCountry } from '../../features/map/services/regions';
+import { useClusterGroup } from '../../features/photos/hooks/useClusterGroup';
 import { usePhotoLibrary } from '../../features/photos/store/PhotoLibraryProvider';
+import { ClusterSheet } from '../../features/photos/ui/ClusterSheet';
 import { useTrips } from '../../features/trips/hooks/useTrips';
 
 /** Celdas de ~5 km: suficiente para ver ciudades y barrios sin miles de puntos. */
@@ -44,6 +46,7 @@ export default function MapScreen() {
     routes: true,
   });
   const [layersOpen, setLayersOpen] = useState(false);
+  const [openCluster, setOpenCluster] = useState<string | null>(null);
 
   // Viaje en el tiempo: null = hoy.
   const currentYear = new Date().getFullYear();
@@ -72,6 +75,7 @@ export default function MapScreen() {
   }, [playing, firstYear, currentYear]);
 
   const { state, fog } = useUnlockState({ until });
+  const group = useClusterGroup(openCluster, CLUSTER_CELL_DEGREES, until);
   const clusters = useMemo(
     () =>
       clusterPhotos(
@@ -101,6 +105,7 @@ export default function MapScreen() {
         style={styles.fill}
         fog={fog}
         photoClusters={clusters}
+        onPressCluster={setOpenCluster}
         routes={routes}
         layers={layers}
         onPressArea={(area) => {
@@ -201,6 +206,8 @@ export default function MapScreen() {
           </View>
         )}
       </View>
+
+      <ClusterSheet group={group} onClose={() => setOpenCluster(null)} />
 
       <Modal
         visible={layersOpen}
