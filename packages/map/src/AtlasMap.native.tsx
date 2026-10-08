@@ -1,9 +1,9 @@
 import { Camera, GeoJSONSource, Layer, Map } from '@maplibre/maplibre-react-native';
+import { File, Paths } from 'expo-file-system';
 import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import {
   ATLAS_SOURCES,
-  ATLAS_STYLE_URL,
   initialCamera,
   overlayLayers,
   readAreaPress,
@@ -12,12 +12,31 @@ import {
   toFogMask,
   toRouteCollection,
 } from './overlays';
+import { NOTEBOOK_STYLE_JSON } from './notebookStyle';
 import type { AtlasMapProps } from './types';
+
+let notebookStyleUri: string | null = null;
+
+/**
+ * El estilo propio se escribe una vez por arranque en la caché y se pasa como `file://`: así el
+ * motor nativo lo trata siempre como URL (en iOS un JSON en línea no es fiable).
+ */
+function defaultStyle(): string {
+  if (notebookStyleUri) return notebookStyleUri;
+  try {
+    const file = new File(Paths.cache, 'atlas-notebook-style.json');
+    file.write(NOTEBOOK_STYLE_JSON);
+    notebookStyleUri = file.uri;
+    return notebookStyleUri;
+  } catch {
+    return NOTEBOOK_STYLE_JSON;
+  }
+}
 
 /** Mapa de Atlas en iOS y Android con maplibre-react-native. */
 export function AtlasMap({
   initialView,
-  styleUrl = ATLAS_STYLE_URL,
+  styleUrl,
   fog,
   routes = [],
   photoClusters = [],
@@ -42,7 +61,7 @@ export function AtlasMap({
   return (
     <Map
       style={[styles.map, style]}
-      mapStyle={styleUrl}
+      mapStyle={styleUrl ?? defaultStyle()}
       accessibilityLabel={accessibilityLabel}
       logo={false}
       compass={false}

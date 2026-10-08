@@ -1,7 +1,7 @@
 export * from './types';
 export {
   ATLAS_SOURCES,
-  ATLAS_STYLE_URL,
+  LIBERTY_STYLE_URL,
   initialCamera,
   type OverlayLayer,
   overlayLayers,
@@ -13,3 +13,4 @@ export {
   toRouteCollection,
 } from './overlays';
 export { AtlasMap } from './AtlasMap';
+export { NOTEBOOK_STYLE, NOTEBOOK_STYLE_JSON, NOTEBOOK_STYLE_URL } from './notebookStyle';

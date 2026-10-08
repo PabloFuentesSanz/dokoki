@@ -192,3 +192,26 @@ describe('initialCamera', () => {
     });
   });
 });
+
+describe('estilo "Cuaderno de explorador"', () => {
+  it('pinta papel y agua con los tokens y usa las teselas de OpenFreeMap', async () => {
+    const { NOTEBOOK_STYLE, NOTEBOOK_STYLE_JSON, NOTEBOOK_STYLE_URL } =
+      await import('./notebookStyle');
+    const { colors } = await import('@atlas/design-system/tokens');
+    const ids = NOTEBOOK_STYLE.layers.map((l) => l.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(NOTEBOOK_STYLE.layers[0]).toMatchObject({
+      type: 'background',
+      paint: { 'background-color': colors.paper },
+    });
+    expect(NOTEBOOK_STYLE.layers.find((l) => l.id === 'water')?.paint).toEqual({
+      'fill-color': colors.water,
+    });
+    expect(NOTEBOOK_STYLE.sources.openmaptiles.url).toBe('https://tiles.openfreemap.org/planet');
+    const parsed: unknown = JSON.parse(NOTEBOOK_STYLE_JSON);
+    expect(parsed).toEqual(NOTEBOOK_STYLE);
+    expect(decodeURIComponent(NOTEBOOK_STYLE_URL.split(',').slice(1).join(','))).toBe(
+      NOTEBOOK_STYLE_JSON,
+    );
+  });
+});

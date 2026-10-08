@@ -56,7 +56,7 @@ export interface AreaPress {
 export interface AtlasMapProps {
   /** Vista inicial. Por defecto, el mundo entero. */
   initialView?: MapInitialView;
-  /** Estilo MapLibre. Por defecto el de Atlas sobre OpenFreeMap. */
+  /** Estilo MapLibre (URL; en nativo también JSON). Por defecto, "Cuaderno de explorador". */
   styleUrl?: string;
   fog?: FogLayer;
   routes?: readonly RouteLayer[];

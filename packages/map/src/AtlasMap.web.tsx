@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   ATLAS_SOURCES,
-  ATLAS_STYLE_URL,
   initialCamera,
   overlayLayers,
   readAreaPress,
@@ -13,6 +12,7 @@ import {
   toFogMask,
   toRouteCollection,
 } from './overlays';
+import { NOTEBOOK_STYLE_URL } from './notebookStyle';
 import type { AtlasMapProps, FogLayer } from './types';
 
 const EMPTY: FogLayer = { type: 'FeatureCollection', features: [] };
@@ -20,7 +20,7 @@ const EMPTY: FogLayer = { type: 'FeatureCollection', features: [] };
 /** Mapa de Atlas en web (visor de escritorio) con maplibre-gl. */
 export function AtlasMap({
   initialView,
-  styleUrl = ATLAS_STYLE_URL,
+  styleUrl = NOTEBOOK_STYLE_URL,
   fog,
   routes = [],
   photoClusters = [],

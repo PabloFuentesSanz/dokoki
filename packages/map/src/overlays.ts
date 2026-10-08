@@ -16,11 +16,10 @@ import type {
 } from './types';
 
 /**
- * Estilo base: OpenFreeMap (gratis, sin claves, uso comercial permitido).
- * TODO(M1.1): sustituir por el estilo propio "Cuaderno de explorador" hecho en Maputnik
- * (tierra paper, agua water, etiquetas en serif) y servirlo desde Cloudflare.
+ * Estilo genérico de OpenFreeMap, por si se quiere comparar. El de Atlas es `NOTEBOOK_STYLE`
+ * (notebookStyle.ts), sobre las mismas teselas.
  */
-export const ATLAS_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+export const LIBERTY_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
 export const ATLAS_SOURCES = {
   fog: 'atlas-fog',
