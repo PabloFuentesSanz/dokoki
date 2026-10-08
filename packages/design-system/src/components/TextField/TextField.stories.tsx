@@ -25,3 +25,7 @@ export const WithError: Story = {
 export const Disabled: Story = {
   args: { label: 'Tu base', defaultValue: 'Madrid', disabled: true },
 };
+/** Notas a mano: varias líneas. */
+export const Multiline: Story = {
+  args: { label: 'Nota del viaje', multiline: true, placeholder: 'Volver en otoño…' },
+};

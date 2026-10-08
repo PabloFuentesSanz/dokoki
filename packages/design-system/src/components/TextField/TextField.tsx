@@ -19,6 +19,8 @@ export interface TextFieldProps {
   error?: string;
   type?: TextFieldType;
   disabled?: boolean;
+  /** Varias líneas (notas). Crece hasta 5 líneas. */
+  multiline?: boolean;
 }
 
 const KEYBOARD: Record<TextFieldType, KeyboardTypeOptions> = {
@@ -39,6 +41,7 @@ export function TextField({
   error,
   type = 'text',
   disabled = false,
+  multiline = false,
 }: TextFieldProps) {
   const { focused, focusProps } = useFocusRing();
   const note = error ?? hint;
@@ -58,9 +61,13 @@ export function TextField({
         keyboardType={KEYBOARD[type]}
         secureTextEntry={type === 'password'}
         autoCapitalize={type === 'text' ? 'sentences' : 'none'}
+        multiline={multiline}
+        numberOfLines={multiline ? 4 : undefined}
+        textAlignVertical={multiline ? 'top' : undefined}
         {...focusProps}
         style={[
           styles.input,
+          multiline && styles.multiline,
           error ? styles.inputError : null,
           focused && styles.inputFocused,
           disabled && styles.inputDisabled,
@@ -92,6 +99,7 @@ const styles = StyleSheet.create({
   field: { gap: 6, minWidth: 240 },
   label: fieldStyles.label,
   input: fieldStyles.input,
+  multiline: { minHeight: touchTarget * 2.5, paddingVertical: spacing[2], lineHeight: 22 },
   inputError: { borderBottomWidth: 2, borderBottomColor: colors.stampRedText },
   inputFocused: { borderBottomWidth: 2, borderBottomColor: colors.focus },
   inputDisabled: { backgroundColor: colors.paperSunk, color: colors.inkMuted },

@@ -36,4 +36,10 @@ describe('TextField', () => {
     render(<TextField label="Base" defaultValue="Madrid" disabled />);
     expect(screen.getByRole('textbox', { name: 'Base' })).toHaveAttribute('readonly');
   });
+
+  it('admite varias líneas para notas', () => {
+    render(<TextField label="Nota" multiline defaultValue={'Una\nDos'} />);
+    const field = screen.getByLabelText('Nota');
+    expect(field.tagName).toBe('TEXTAREA');
+  });
 });
